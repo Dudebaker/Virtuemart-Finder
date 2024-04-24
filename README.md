@@ -12,7 +12,7 @@ The Finder Virtuemart Products plugin does have some additional settings to use 
 
 ---
 
-### After the installation you have to enable all all plugins!
+### After the installation you have to enable all plugins!
 
 ---
 
