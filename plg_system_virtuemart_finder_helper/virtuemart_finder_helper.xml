@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_VIRTUEMART_FINDER_HELPER</name>
+    <author>Dudebaker</author>
+    <authorEmail>@</authorEmail>
+    <authorUrl>w</authorUrl>
+    <creationDate>2024-04</creationDate>
+    <copyright>(C) Open Source Matters, Inc.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_VIRTUEMART_FINDER_HELPER_XML_DESCRIPTION</description>
+    <namespace path="src">Joomla\Plugin\System\VirtuemartFinderHelper</namespace>
+    <files>
+        <folder plugin="virtuemart_finder_helper">services</folder>
+        <folder>src</folder>
+    </files>
+    <languages>
+        <language tag="en-GB">language/en-GB/plg_system_virtuemart_finder_helper.ini</language>
+        <language tag="en-GB">language/en-GB/plg_system_virtuemart_finder_helper.sys.ini</language>
+        <language tag="de-DE">language/de-DE/plg_system_virtuemart_finder_helper.ini</language>
+        <language tag="de-DE">language/de-DE/plg_system_virtuemart_finder_helper.sys.ini</language>
+    </languages>
+</extension>

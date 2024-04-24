@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="finder" method="upgrade">
+	<name>PLG_FINDER_VIRTUEMART_PRODUCTS</name>
+	<author>Dudebaker</author>
+	<authorEmail>@</authorEmail>
+	<authorUrl>w</authorUrl>
+	<creationDate>2024-04</creationDate>
+	<copyright>(C) Open Source Matters, Inc.</copyright>
+	<license>GNU General Public License version 2 or later</license>
+	<version>1.0.0</version>
+	<description>PLG_FINDER_VIRTUEMART_PRODUCTS_XML_DESCRIPTION</description>
+	<namespace path="src">Joomla\Plugin\Finder\VirtuemartProducts</namespace>
+	<files>
+		<folder plugin="virtuemart_products">services</folder>
+		<folder>src</folder>
+	</files>
+	<languages>
+		<language tag="en-GB">language/en-GB/plg_finder_virtuemart_products.ini</language>
+		<language tag="en-GB">language/en-GB/plg_finder_virtuemart_products.sys.ini</language>
+		<language tag="de-DE">language/de-DE/plg_finder_virtuemart_products.ini</language>
+		<language tag="de-DE">language/de-DE/plg_finder_virtuemart_products.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="use_parent_image" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_IMAGE_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="use_parent_category" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_CATEGORY_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="use_parent_manufacturer" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_MANUFACTURER_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+</extension>

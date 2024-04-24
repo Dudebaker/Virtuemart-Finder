@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="vmcustom" method="upgrade">
+    <name>PLG_VMCUSTOM_FINDER</name>
+    <author>Dudebaker</author>
+    <authorEmail>@</authorEmail>
+    <authorUrl>w</authorUrl>
+    <creationDate>2024-04</creationDate>
+    <copyright>(C) Open Source Matters, Inc.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.0.0</version>
+    <description>PLG_VMCUSTOM_FINDER_XML_DESCRIPTION</description>
+    <files>
+        <filename plugin="finder">finder.php</filename>
+    </files>
+    <languages>
+        <language tag="en-GB">language/en-GB/plg_vmcustom_finder.ini</language>
+        <language tag="en-GB">language/en-GB/plg_vmcustom_finder.sys.ini</language>
+        <language tag="de-DE">language/de-DE/plg_vmcustom_finder.ini</language>
+        <language tag="de-DE">language/de-DE/plg_vmcustom_finder.sys.ini</language>
+    </languages>    
+</extension>

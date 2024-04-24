@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="package" method="upgrade">
+    <name>Virtuemart Finder Package</name>
+    <packagename>virtuemart_finder</packagename>
+    <author>Dudebaker</author>
+    <authorEmail>@</authorEmail>
+    <authorUrl>w</authorUrl>
+    <creationDate>2024-04</creationDate>
+    <copyright>(C) Open Source Matters, Inc.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.0.0</version>
+    <description><![CDATA[This package contains all necessary plugins to add Virtuemart products, categories and manufacturers entries to the Finder Index and automatically update it upon changes in Virtuemart.<br><b>You have to enable all plugins after the installation!</b>]]></description>
+    <files>
+        <file type="plugin" group="system" id="virtuemart_finder_helper">plg_system_virtuemart_finder_helper.zip</file>
+        <file type="plugin" group="vmcustom" id="finder">plg_vmcustom_finder.zip</file>
+        <file type="plugin" group="finder" id="virtuemart_products">plg_finder_virtuemart_products.zip</file>
+        <file type="plugin" group="finder" id="virtuemart_categories">plg_finder_virtuemart_categories.zip</file>
+        <file type="plugin" group="finder" id="virtuemart_manufacturers">plg_finder_virtuemart_manufacturers.zip</file>
+    </files>
+</extension>
