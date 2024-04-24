@@ -1,4 +1,4 @@
-# Virtuemart-Finder-Package for Joomla Smart-Search
+# Virtuemart Finder Package for Joomla Smart-Search
 
 Virtuemart does not have Smart Search plugins for the newer in Joomla integrated Search-Engine.
 
