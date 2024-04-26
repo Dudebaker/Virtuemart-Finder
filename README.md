@@ -8,7 +8,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 ---
 
-The Finder Virtuemart Products plugin does have some additional settings to use the parent image/category/product if the child does not have anything assigned
+The Finder Virtuemart Products plugin does have some additional settings to use the parent image/category/manufacturer if the child does not have anything assigned
 
 ---
 

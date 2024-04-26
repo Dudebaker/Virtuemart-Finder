@@ -353,6 +353,7 @@
 			// Add the processing instructions.
 			$item->addInstruction(Indexer::TEXT_CONTEXT, 'product_sku');
 			$item->addInstruction(Indexer::TEXT_CONTEXT, 'product_gtin');
+			$item->addInstruction(Indexer::TEXT_CONTEXT, 'product_mpn');
 			$item->addInstruction(Indexer::META_CONTEXT, 'metakey');
 			$item->addInstruction(Indexer::META_CONTEXT, 'metadesc');
 			$item->addInstruction(Indexer::META_CONTEXT, 'category_name');
@@ -572,6 +573,7 @@
 			                $db->quoteName('p.metarobot'),
 			                $db->quoteName('p.product_sku'),
 			                $db->quoteName('p.product_gtin'),
+			                $db->quoteName('p.product_mpn'),
 			                $db->quote($language) . ' AS language'])
 			      ->from($db->quoteName($this->table, 'p'))
 			      ->innerJoin($db->quoteName('#__virtuemart_products_' . $defaultLanguageDb, 'pl'), 'pl.virtuemart_product_id = p.virtuemart_product_id')
@@ -595,8 +597,8 @@
 			{
 				$query->select(['IFNULL(' . $db->quoteName('additional_pl.product_name') . ', ' . $db->quoteName('pl.product_name') . ') AS title',
 				                'IFNULL(' . $db->quoteName('additional_pl.slug') . ', ' . $db->quoteName('pl.slug') . ') AS alias',
-				                'IFNULL(' . $db->quoteName('additional_pl.product_name') . ', ' . $db->quoteName('pl.product_name') . ') AS summary',
-				                'IFNULL(' . $db->quoteName('additional_pl.product_s_desc') . ', ' . $db->quoteName('pl.product_s_desc') . ') AS body',
+				                'IFNULL(' . $db->quoteName('additional_pl.product_s_desc') . ', ' . $db->quoteName('pl.product_s_desc') . ') AS summary',
+				                'IFNULL(' . $db->quoteName('additional_pl.product_desc') . ', ' . $db->quoteName('pl.product_desc') . ') AS body',
 				                'IFNULL(' . $db->quoteName('additional_pl.metakey') . ', ' . $db->quoteName('pl.metakey') . ') AS metakey',
 				                'IFNULL(' . $db->quoteName('additional_pl.metadesc') . ', ' . $db->quoteName('pl.metadesc') . ') AS metadesc'])
 				      ->leftJoin($db->quoteName('#__virtuemart_products_' . $languageDb, 'additional_pl'), 'additional_pl.virtuemart_product_id = p.virtuemart_product_id');
@@ -605,8 +607,8 @@
 			{
 				$query->select([$db->quoteName('pl.product_name', 'title'),
 				                $db->quoteName('pl.slug', 'alias'),
-				                $db->quoteName('pl.product_name', 'summary'),
-				                $db->quoteName('pl.product_s_desc', 'body'),
+				                $db->quoteName('pl.product_s_desc', 'summary'),
+				                $db->quoteName('pl.product_desc', 'body'),
 				                $db->quoteName('pl.metakey'),
 				                $db->quoteName('pl.metadesc')]);
 			}
