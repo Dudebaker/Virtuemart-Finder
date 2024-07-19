@@ -24,6 +24,7 @@
 	use Joomla\Component\Finder\Administrator\Indexer\Result;
 	use Joomla\Database\DatabaseAwareTrait;
 	use Joomla\Database\DatabaseQuery;
+	use Joomla\Database\QueryInterface;
 	use Joomla\Registry\Registry;
 	use Joomla\Utilities\ArrayHelper;
 	
@@ -113,7 +114,7 @@
 		 * Method to remove the link information for items that have been deleted.
 		 *
 		 * @param   string  $context  The context of the action being performed.
-		 * @param   mixed   $table    A Table object containing the record to be deleted or only the id
+		 * @param   Table   $table    A Table object containing the record to be deleted
 		 *
 		 * @return  void
 		 *
@@ -125,7 +126,8 @@
 		{
 			if ($context === 'com_virtuemart.category')
 			{
-				$id = $table;
+				/** @noinspection PhpPossiblePolymorphicInvocationInspection */
+				$id = $table->id;
 			}
 			else
 			{
@@ -163,7 +165,8 @@
 		{
 			if ($context === 'com_virtuemart.category')
 			{
-				$this->reindex((int) $row);
+				/** @noinspection PhpPossiblePolymorphicInvocationInspection */
+				$this->reindex($row->id);
 			}
 		}
 		
@@ -204,7 +207,7 @@
 		 * @throws \Exception
 		 * @since   4.2.0
 		 */
-		public function onFinderGarbageCollection()
+		public function onFinderGarbageCollection() : int
 		{
 			$db = $this->getDatabase();
 			
@@ -250,7 +253,7 @@
 		 * @throws \Exception
 		 * @since   2.5
 		 */
-		public function itemStateChange($pks, $value)
+		public function itemStateChange($pks, $value) : void
 		{
 			foreach ($pks as $pk)
 			{
@@ -274,7 +277,7 @@
 		 * @throws  \Exception on database error.
 		 * @since   2.5
 		 */
-		public function change($id, $property, $value)
+		public function change($id, $property, $value) : bool
 		{
 			// Check for a property we know how to handle.
 			if ($property !== 'state' && $property !== 'published')
@@ -321,7 +324,7 @@
 		 * @throws  \Exception on database error.
 		 * @since   2.5
 		 */
-		protected function index(Result $item)
+		protected function index(Result $item) : void
 		{
 			$item->setLanguage();
 			
@@ -390,7 +393,7 @@
 		 *
 		 * @since   3.1
 		 */
-		protected function getStateQuery()
+		protected function getStateQuery() : QueryInterface
 		{
 			$db = $this->getDatabase();
 			
@@ -446,7 +449,7 @@
 		 *
 		 * @since   2.5
 		 */
-		public function getUrl($id, $extension, $view, $language = null)
+		public function getUrl($id, $extension, $view, $language = null) : string
 		{
 			$url = "index.php?option=$extension&view=$view&virtuemart_category_id=$id";
 			
@@ -476,7 +479,7 @@
 		 *
 		 * @since   2.5
 		 */
-		public function getRoute($id, $extension, $view, $language)
+		public function getRoute($id, $extension, $view, $language) : string
 		{
 			$language = strtolower($language);
 			
@@ -544,7 +547,6 @@
 			      ->leftJoin($db->quoteName('#__virtuemart_category_medias', 'cm'), 'cm.virtuemart_category_id = c.virtuemart_category_id')
 			      ->leftJoin($queryFirstImage, 'cmo.virtuemart_category_id = c.virtuemart_category_id AND cmo.min_ordering = cm.ordering')
 			      ->leftJoin($db->quoteName('#__virtuemart_medias', 'm'), 'm.virtuemart_media_id = cm.virtuemart_media_id')
-			      ->where($db->quoteName('c.published') . ' = 1')
 			      ->where('(' . $db->quoteName('cm.virtuemart_media_id') . ' IS NULL OR (' . $db->quoteName('cmo.min_ordering') . ' IS NOT NULL))');
 			
 			if ($language !== $defaultLanguage)
@@ -639,7 +641,7 @@
 		 */
 		protected function getDefaultVirtuemartLanguage() : string
 		{
-			$config = self::getVirtuemartConfig();
+			$config = $this->getVirtuemartConfig();
 			
 			$defaultLanguage = substr($config, strpos($config, 'vmDefLang="') + strlen('vmDefLang="'));
 			$defaultLanguage = substr($defaultLanguage, 0, strpos($defaultLanguage, '"'));
@@ -662,7 +664,7 @@
 		 */
 		protected function getActiveVirtuemartLanguages() : array
 		{
-			$config = self::getVirtuemartConfig();
+			$config = $this->getVirtuemartConfig();
 			
 			$activeLanguages = substr($config, strpos($config, 'active_languages=') + strlen('active_languages='));
 			$activeLanguages = substr($activeLanguages, 0, strpos($activeLanguages, ']'));

@@ -9,68 +9,132 @@
 	
 	/** @noinspection PhpUnused */
 	
+	/** @noinspection AutoloadingIssuesInspection */
+	
 	use Joomla\CMS\Application\CMSApplicationInterface;
 	use Joomla\CMS\Factory;
 	use Joomla\CMS\Plugin\PluginHelper;
+	use Joomla\CMS\Event\Finder as FinderEvent;
+	use Joomla\Event\DispatcherInterface;
 	
 	defined('_JEXEC') or die('Direct Access to ' . basename(__FILE__) . ' is not allowed.');
 	
 	class plgVmCustomFinder extends vmCustomPlugin
 	{
 		protected CMSApplicationInterface $app;
+		protected DispatcherInterface $dispatcher;
 		
+		/**
+		 * @throws \Exception
+		 */
 		public function __construct(&$subject, $config)
 		{
-			/** @noinspection PhpUnhandledExceptionInspection */
-			$this->app = Factory::getApplication();
+			$this->app        = Factory::getApplication();
+			$this->dispatcher = $this->app->getDispatcher();
 			
 			parent::__construct($subject, $config);
 		}
 		
-		#region Virtuemart Events
+		#region Virtuemart Product Events
 		public function plgVmAfterStoreProduct($data, $table) : void
 		{
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterSave', ['com_virtuemart.product', $table->virtuemart_product_id, (bool) $data['new']]);
+			
+			$obj     = new stdClass();
+			$obj->id = $table->virtuemart_product_id;
+			
+			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+				'context' => 'com_virtuemart.product',
+				'subject' => $obj,
+				'isNew'   => (bool) $data['new'],
+			]));
 		}
 		
 		public function plgVmOnDeleteProduct($id) : void
 		{
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterDelete', ['com_virtuemart.product', $id]);
+			
+			$obj     = new stdClass();
+			$obj->id = $id;
+			
+			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+				'context' => 'com_virtuemart.product',
+				'subject' => $obj
+			]));
 		}
+		#endregion
 		
+		#region Virtuemart Category Events
 		public function plgVmAfterStoreCategory($data, $table) : void
 		{
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterSave', ['com_virtuemart.category', $table->virtuemart_category_id, (bool) $data['new']]);
+			
+			$obj     = new stdClass();
+			$obj->id = $table->virtuemart_category_id;
+			
+			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+				'context' => 'com_virtuemart.category',
+				'subject' => $obj,
+				'isNew'   => (bool) $data['new'],
+			]));
 		}
 		
 		public function plgVmOnDeleteCategory($id) : void
 		{
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterDelete', ['com_virtuemart.category', $id]);
+			
+			$obj     = new stdClass();
+			$obj->id = $id;
+			
+			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+				'context' => 'com_virtuemart.category',
+				'subject' => $obj
+			]));
 		}
+		#endregion
 		
+		#region Virtuemart Manufacturer Events
 		public function plgVmAfterStoreManufacturer($data, $table) : void
 		{
 			// TODO: Event plgVmAfterStoreManufacturer does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterSave', ['com_virtuemart.manufacturer', $table->virtuemart_manufacturer_id, (bool) $data['new']]);
+			
+			$obj     = new stdClass();
+			$obj->id = $table->virtuemart_manufacturer_id;
+			
+			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+				'context' => 'com_virtuemart.manufacturer',
+				'subject' => $obj,
+				'isNew'   => (bool) $data['new'],
+			]));
 		}
 		
 		public function plgVmOnDeleteManufacturer($id) : void
 		{
 			// TODO: Event plgVmOnDeleteManufacturer does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
-			$this->app->triggerEvent('onFinderAfterDelete', ['com_virtuemart.manufacturer', $id]);
+			
+			$obj     = new stdClass();
+			$obj->id = $id;
+			
+			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+				'context' => 'com_virtuemart.manufacturer',
+				'subject' => $obj
+			]));
 		}
+		#endregion
 		
+		#region Virtuemart Publish Change Events
 		public function plgVmOnPublishChange($ids, $view, $task) : void
 		{
 			// TODO: Event plgVmOnPublishChange does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
-			$this->getApplication()->triggerEvent('onFinderChangeState', ['com_virtuemart.' . strtolower($view), $ids, $task === 'publish' ? 1 : 0]);
+			
+			$this->dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
+				'context' => 'com_virtuemart.' . strtolower($view),
+				'subject' => $ids,
+				'value'   => $task === 'publish' ? 1 : 0
+			]));
 		}
 		#endregion
 	}

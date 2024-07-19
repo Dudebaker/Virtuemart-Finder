@@ -15,6 +15,8 @@
 	use Joomla\CMS\Plugin\CMSPlugin;
 	use Joomla\CMS\Plugin\PluginHelper;
 	use Joomla\Event\SubscriberInterface;
+	use Joomla\CMS\Event\Finder as FinderEvent;
+	use stdClass;
 	
 	defined('_JEXEC') or die;
 	
@@ -39,12 +41,19 @@
 		 */
 		public function onApplicationBeforeRespond() : void
 		{
-			if ($this->getApplication()->isClient('site'))
+			$app = $this->getApplication();
+			
+			if ($app === null)
 			{
 				return;
 			}
 			
-			$input  = $this->getApplication()->getInput();
+			if ($app->isClient('site'))
+			{
+				return;
+			}
+			
+			$input  = $app->getInput();
 			$option = $input->getCmd('option');
 			
 			if ($option !== 'com_virtuemart')
@@ -69,7 +78,14 @@
 		 */
 		private function CheckTaskPublishUnpublish() : bool
 		{
-			$input = $this->getApplication()->getInput();
+			$app = $this->getApplication();
+			
+			if ($app === null)
+			{
+				return false;
+			}
+			
+			$input = $app->getInput();
 			$task  = $input->getCmd('task', '');
 			
 			if (!in_array($task, ['publish', 'unpublish']))
@@ -99,7 +115,8 @@
 				return false;
 			}
 			
-			$messageQueue = $this->getApplication()->getMessageQueue();
+			$dispatcher   = $app->getDispatcher();
+			$messageQueue = $app->getMessageQueue();
 			$resultString = $task === 'publish' ? 'COM_VIRTUEMART_STRING_PUBLISHED_SUCCESS' : 'COM_VIRTUEMART_STRING_UNPUBLISHED_SUCCESS';
 			$resultText   = Text::sprintf($resultString, Text::_('COM_VIRTUEMART_' . strtoupper($view)));
 			
@@ -108,7 +125,12 @@
 				if ($message['message'] === $resultText)
 				{
 					PluginHelper::importPlugin('finder');
-					$this->getApplication()->triggerEvent('onFinderChangeState', ['com_virtuemart.' . strtolower($view), $ids, $task === 'publish' ? 1 : 0]);
+					
+					$dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
+						'context' => 'com_virtuemart.' . strtolower($view),
+						'subject' => $ids,
+						'value'   => $task === 'publish' ? 1 : 0
+					]));
 					break;
 				}
 			}
@@ -126,7 +148,14 @@
 		 */
 		private function CheckTaskManufacturerSave() : bool
 		{
-			$input = $this->getApplication()->getInput();
+			$app = $this->getApplication();
+			
+			if ($app === null)
+			{
+				return false;
+			}
+			
+			$input = $app->getInput();
 			$view  = $input->getCmd('view', '');
 			
 			if ($view !== 'manufacturer')
@@ -152,7 +181,8 @@
 				return false;
 			}
 			
-			$messageQueue = $this->getApplication()->getMessageQueue();
+			$dispatcher   = $app->getDispatcher();
+			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_SAVED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
 			foreach ($messageQueue as $message)
@@ -160,7 +190,15 @@
 				if ($message['message'] === $resultText)
 				{
 					PluginHelper::importPlugin('finder');
-					$this->getApplication()->triggerEvent('onFinderAfterSave', ['com_virtuemart.manufacturer', $id, true]);
+					
+					$obj     = new stdClass();
+					$obj->id = $id;
+					
+					$dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+						'context' => 'com_virtuemart.manufacturer',
+						'subject' => $obj,
+						'isNew'   => true,
+					]));
 					break;
 				}
 			}
@@ -178,7 +216,14 @@
 		 */
 		private function CheckTaskManufacturerRemove() : bool
 		{
-			$input = $this->getApplication()->getInput();
+			$app = $this->getApplication();
+			
+			if ($app === null)
+			{
+				return false;
+			}
+			
+			$input = $app->getInput();
 			$view  = $input->getCmd('view', '');
 			
 			if ($view !== 'manufacturer')
@@ -205,7 +250,8 @@
 				$ids = [$ids];
 			}
 			
-			$messageQueue = $this->getApplication()->getMessageQueue();
+			$dispatcher   = $app->getDispatcher();
+			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_DELETED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
 			foreach ($messageQueue as $message)
@@ -216,7 +262,13 @@
 					
 					foreach ($ids as $id)
 					{
-						$this->getApplication()->triggerEvent('onFinderAfterDelete', ['com_virtuemart.manufacturer', $id]);
+						$obj     = new stdClass();
+						$obj->id = $id;
+						
+						$dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+							'context' => 'com_virtuemart.manufacturer',
+							'subject' => $obj
+						]));
 					}
 					break;
 				}

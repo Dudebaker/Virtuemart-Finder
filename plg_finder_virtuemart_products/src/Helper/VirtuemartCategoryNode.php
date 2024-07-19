@@ -135,7 +135,7 @@
 			
 			$result = $db->setQuery($query)->loadObject();
 			
-			$category              = new VirtuemartCategoryNode();
+			$category              = new self();
 			$category->id          = $result->virtuemart_category_id;
 			$category->parent_id   = $result->category_parent_id;
 			$category->title       = $result->category_name;
@@ -184,7 +184,7 @@
 				$this->_leftSibling->_rightsibling = &$this;
 			}
 			
-			if ($this->parent_id != 0)
+			if ($this->parent_id !== 0)
 			{
 				/** @noinspection PhpPossiblePolymorphicInvocationInspection */
 				$this->_path = $parent->getPath();
@@ -206,7 +206,7 @@
 		{
 			if (!$this->_allChildrenloaded)
 			{
-				$temp = $this->getCategory($this->id, $this->language);
+				$temp = self::getCategory($this->id, $this->language);
 				
 				$this->_children     = $temp->getChildren();
 				$this->_leftSibling  = $temp->getSibling(false);
@@ -221,7 +221,8 @@
 				foreach ($this->_children as $child)
 				{
 					$items[] = $child;
-					$items   = array_merge($items, $child->getChildren(true));
+					/** @noinspection SlowArrayOperationsInLoopInspection */
+					$items = array_merge($items, $child->getChildren(true));
 				}
 				
 				return $items;
@@ -243,7 +244,7 @@
 		{
 			if (!$this->_allChildrenloaded)
 			{
-				$temp                = $this->getCategory($this->id, $this->language);
+				$temp                = self::getCategory($this->id, $this->language);
 				$this->_children     = $temp->getChildren();
 				$this->_leftSibling  = $temp->getSibling(false);
 				$this->_rightSibling = $temp->getSibling();

@@ -16,4 +16,4 @@ The Finder Virtuemart Products plugin does have some additional settings to use 
 
 ---
 
-### Tested with Virtuemart 4.2 and Joomla 4.4
+### Tested with Virtuemart 4.2.16 and Joomla 5.1.2
