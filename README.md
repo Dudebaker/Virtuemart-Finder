@@ -21,4 +21,5 @@ The Finder Virtuemart Products plugin does have some additional settings to use 
 ---
 
 Version 1.1.0 - Joomla 5
+
 Version 1.0.1 - Joomla 4
