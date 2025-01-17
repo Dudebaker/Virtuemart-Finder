@@ -8,7 +8,7 @@
 	 */
 	
 	/** @noinspection PhpUnused */
-	
+	/** @noinspection PhpMultipleClassDeclarationsInspection */
 	/** @noinspection AutoloadingIssuesInspection */
 	
 	use Joomla\CMS\Application\CMSApplicationInterface;
@@ -23,6 +23,7 @@
 	{
 		protected CMSApplicationInterface $app;
 		protected DispatcherInterface $dispatcher;
+		protected array $activeLanguages;
 		
 		/**
 		 * @throws \Exception
@@ -32,6 +33,10 @@
 			$this->app        = Factory::getApplication();
 			$this->dispatcher = $this->app->getDispatcher();
 			
+			VmConfig::loadConfig();
+			
+			$this->activeLanguages = (array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
 			parent::__construct($subject, $config);
 		}
 		
@@ -40,27 +45,33 @@
 		{
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $table->virtuemart_product_id;
-			
-			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
-				'context' => 'com_virtuemart.product',
-				'subject' => $obj,
-				'isNew'   => (bool) $data['new'],
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $table->virtuemart_product_id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+					'context' => 'com_virtuemart.product',
+					'subject' => $obj,
+					'isNew'   => (bool) $data['new'],
+				]));
+			}
 		}
 		
 		public function plgVmOnDeleteProduct($id) : void
 		{
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $id;
-			
-			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
-				'context' => 'com_virtuemart.product',
-				'subject' => $obj
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+					'context' => 'com_virtuemart.product',
+					'subject' => $obj
+				]));
+			}
 		}
 		#endregion
 		
@@ -69,27 +80,33 @@
 		{
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $table->virtuemart_category_id;
-			
-			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
-				'context' => 'com_virtuemart.category',
-				'subject' => $obj,
-				'isNew'   => (bool) $data['new'],
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $table->virtuemart_category_id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+					'context' => 'com_virtuemart.category',
+					'subject' => $obj,
+					'isNew'   => (bool) $data['new'],
+				]));
+			}
 		}
 		
 		public function plgVmOnDeleteCategory($id) : void
 		{
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $id;
-			
-			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
-				'context' => 'com_virtuemart.category',
-				'subject' => $obj
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+					'context' => 'com_virtuemart.category',
+					'subject' => $obj
+				]));
+			}
 		}
 		#endregion
 		
@@ -99,14 +116,17 @@
 			// TODO: Event plgVmAfterStoreManufacturer does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $table->virtuemart_manufacturer_id;
-			
-			$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
-				'context' => 'com_virtuemart.manufacturer',
-				'subject' => $obj,
-				'isNew'   => (bool) $data['new'],
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $table->virtuemart_manufacturer_id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+					'context' => 'com_virtuemart.manufacturer',
+					'subject' => $obj,
+					'isNew'   => (bool) $data['new'],
+				]));
+			}
 		}
 		
 		public function plgVmOnDeleteManufacturer($id) : void
@@ -114,13 +134,16 @@
 			// TODO: Event plgVmOnDeleteManufacturer does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
 			
-			$obj     = new stdClass();
-			$obj->id = $id;
-			
-			$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
-				'context' => 'com_virtuemart.manufacturer',
-				'subject' => $obj
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$obj     = new stdClass();
+				$obj->id = $id . '_' . $activeLanguage;
+				
+				$this->dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+					'context' => 'com_virtuemart.manufacturer',
+					'subject' => $obj
+				]));
+			}
 		}
 		#endregion
 		
@@ -130,11 +153,14 @@
 			// TODO: Event plgVmOnPublishChange does not exist in Virtuemart Core - realized with plg_system_virtuemart_finder_helper!
 			PluginHelper::importPlugin('finder');
 			
-			$this->dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
-				'context' => 'com_virtuemart.' . strtolower($view),
-				'subject' => $ids,
-				'value'   => $task === 'publish' ? 1 : 0
-			]));
+			foreach ($this->activeLanguages as $activeLanguage)
+			{
+				$this->dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
+					'context' => 'com_virtuemart.' . strtolower($view),
+					'subject' => $ids . '_' . $activeLanguage,
+					'value'   => $task === 'publish' ? 1 : 0
+				]));
+			}
 		}
 		#endregion
 	}

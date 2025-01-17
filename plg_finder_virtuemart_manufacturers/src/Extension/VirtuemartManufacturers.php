@@ -13,10 +13,12 @@
 	/** @noinspection PhpUnusedParameterInspection */
 	/** @noinspection PhpUnused */
 	/** @noinspection DuplicatedCode */
+	/** @noinspection RedundantSuppression */
 	
 	namespace Joomla\Plugin\Finder\VirtuemartManufacturers\Extension;
 	
 	use Joomla\CMS\Component\ComponentHelper;
+	use Joomla\CMS\Factory;
 	use Joomla\CMS\Table\Table;
 	use Joomla\Component\Finder\Administrator\Indexer\Adapter;
 	use Joomla\Component\Finder\Administrator\Indexer\Helper;
@@ -25,8 +27,14 @@
 	use Joomla\Database\DatabaseAwareTrait;
 	use Joomla\Database\DatabaseQuery;
 	use Joomla\Database\QueryInterface;
+	use Joomla\Event\DispatcherInterface;
 	use Joomla\Registry\Registry;
 	use Joomla\Utilities\ArrayHelper;
+	use VirtueMartModelManufacturer;
+	use VmConfig;
+	use vmLanguage;
+	use VmMediaHandler;
+	use VmModel;
 	
 	defined('_JEXEC') or die;
 	
@@ -44,6 +52,7 @@
 		 * The plugin identifier.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $context = 'Virtuemart Manufacturer';
@@ -52,6 +61,7 @@
 		 * The extension name.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $extension = 'com_virtuemart';
@@ -60,6 +70,7 @@
 		 * The sublayout to use when rendering the results.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $layout = 'manufacturers';
@@ -68,6 +79,7 @@
 		 * The type of content that the adapter indexes.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $type_title = 'Virtuemart Manufacturer';
@@ -76,6 +88,7 @@
 		 * The table name.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $table = '#__virtuemart_manufacturers';
@@ -84,6 +97,7 @@
 		 * The field the published state is stored in.
 		 *
 		 * @var    string
+		 *
 		 * @since  2.5
 		 */
 		protected $state_field = 'published';
@@ -92,12 +106,34 @@
 		 * Load the language file on instantiation.
 		 *
 		 * @var    boolean
+		 *
 		 * @since  3.1
 		 */
 		protected $autoloadLanguage = true;
+		
+		/**
+		 * Saves the default virtuemart language
+		 *
+		 * @var string
+		 *
+		 * @since 1.2
+		 */
+		protected string $defaultLanguage = 'en-GB';
+		
 		#endregion
 		
+		public function __construct(DispatcherInterface $dispatcher, array $config)
+		{
+			VmConfig::loadConfig();
+			vmLanguage::loadJLang('com_virtuemart', true);
+			
+			$this->defaultLanguage = (string)VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
+			
+			parent::__construct($dispatcher, $config);
+		}
+		
 		#region Joomla Events
+		
 		/**
 		 * Method to set up the indexer to be run.
 		 *
@@ -119,31 +155,51 @@
 		 * @return  void
 		 *
 		 * @throws  \Exception on database error.
+		 *
 		 * @since        2.5
+		 *
 		 * @noinspection PhpMissingParamTypeInspection
+		 * @noinspection PhpPossiblePolymorphicInvocationInspection
 		 */
 		public function onFinderAfterDelete($context, $table) : void
 		{
-			if ($context === 'com_virtuemart.manufacturer')
+			switch ($context)
 			{
-				/** @noinspection PhpPossiblePolymorphicInvocationInspection */
-				$id = $table->id;
+				case 'com_virtuemart.manufacturer':
+					$id = $table->id;
+					break;
+				case 'com_finder.index':
+					$id = $table->link_id;
+					break;
+				default:
+					return;
+			}
+			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			if (empty($activeLanguages))
+			{
+				$this->remove($id);
+				
+				return;
+			}
+			
+			if (str_contains($id, '_'))
+			{
+				$idWithoutLanguage = explode('_', $id)[0];
 			}
 			else
 			{
-				if ($context === 'com_finder.index')
-				{
-					/** @noinspection PhpUndefinedFieldInspection */
-					$id = $table->link_id;
-				}
-				else
-				{
-					return;
-				}
+				$idWithoutLanguage = $id;
 			}
 			
-			// Remove item from the index.
-			$this->remove($id);
+			foreach ($activeLanguages as $activeLanguage)
+			{
+				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
+				
+				// Remove item from the index.
+				$this->remove($idWithLanguage);
+			}
 		}
 		
 		/**
@@ -159,14 +215,42 @@
 		 * @return  void
 		 *
 		 * @throws  \Exception on database error.
-		 * @since   2.5
+		 *
+		 * @since        2.5
+		 *
+		 * @noinspection PhpPossiblePolymorphicInvocationInspection
 		 */
 		public function onFinderAfterSave($context, $row, $isNew) : void
 		{
-			if ($context === 'com_virtuemart.manufacturer')
+			if ($context !== 'com_virtuemart.manufacturer')
 			{
-				/** @noinspection PhpPossiblePolymorphicInvocationInspection */
+				return;
+			}
+			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			if (empty($activeLanguages))
+			{
 				$this->reindex($row->id);
+				
+				return;
+			}
+			
+			if (str_contains($row->id, '_'))
+			{
+				$idWithoutLanguage = explode('_', $row->id)[0];
+			}
+			else
+			{
+				$idWithoutLanguage = $row->id;
+			}
+			
+			foreach ($activeLanguages as $activeLanguage)
+			{
+				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
+				
+				// Remove item from the index.
+				$this->reindex($idWithLanguage);
 			}
 		}
 		
@@ -182,6 +266,7 @@
 		 * @return  void
 		 *
 		 * @throws \Exception
+		 *
 		 * @since   2.5
 		 */
 		public function onFinderChangeState($context, $pks, $value) : void
@@ -205,6 +290,7 @@
 		 * @return  integer
 		 *
 		 * @throws \Exception
+		 *
 		 * @since   4.2.0
 		 */
 		public function onFinderGarbageCollection() : int
@@ -251,6 +337,7 @@
 		 * @return  void
 		 *
 		 * @throws \Exception
+		 *
 		 * @since   2.5
 		 */
 		public function itemStateChange($pks, $value) : void
@@ -275,6 +362,7 @@
 		 * @return  boolean  True on success.
 		 *
 		 * @throws  \Exception on database error.
+		 *
 		 * @since   2.5
 		 */
 		public function change($id, $property, $value) : bool
@@ -285,29 +373,52 @@
 				return true;
 			}
 			
-			$db   = $this->getDatabase();
-			$item = $db->quote($this->getUrl($id, $this->extension, $this->layout) . '%');
+			if (str_contains($id, '_'))
+			{
+				$idWithoutLanguage = explode('_', $id)[0];
+			}
+			else
+			{
+				$idWithoutLanguage = $id;
+			}
+			
+			$db  = $this->getDatabase();
+			$url = $db->quote($this->getUrl($idWithoutLanguage, $this->extension, $this->layout) . '%');
 			
 			// Check if the content item exists, otherwise index it
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName('link_id'))
+			$query->select($db->quoteName('url'))
 			      ->from($db->quoteName('#__finder_links'))
-			      ->where($db->quoteName('url') . ' LIKE ' . $item);
+			      ->where($db->quoteName('url') . ' LIKE ' . $url);
 			
 			$db->setQuery($query);
-			$existingItem = $db->loadResult();
+			$existingItems = $db->loadColumn();
 			
-			if (empty($existingItem))
+			if (!is_array($existingItems))
 			{
-				// Does not exist, index it
-				$this->index($this->getItem($id));
+				$existingItems = [$existingItems];
+			}
+			
+			$existingLanguages = array_map(static function ($field)
+			{
+				return strtolower(substr(strstr($field, '&lang='), strlen('&lang=')));
+			}, $existingItems);
+			
+			$activeLanguages = (array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			foreach ($activeLanguages as $activeLanguage)
+			{
+				if (!in_array(strtolower($activeLanguage), $existingLanguages, true))
+				{
+					$this->index($this->getItem($idWithoutLanguage . '_' . $activeLanguage));
+				}
 			}
 			
 			// Update the content items.
 			$query = $db->getQuery(true)
 			            ->update($db->quoteName('#__finder_links'))
 			            ->set($db->quoteName($property) . ' = ' . (int) $value)
-			            ->where($db->quoteName('url') . ' LIKE ' . $db->quote($this->getUrl($id, $this->extension, $this->layout) . '%'));
+			            ->where($db->quoteName('url') . ' LIKE ' . $url);
 			$db->setQuery($query);
 			$db->execute();
 			
@@ -322,6 +433,7 @@
 		 * @return  void
 		 *
 		 * @throws  \Exception on database error.
+		 *
 		 * @since   2.5
 		 */
 		protected function index(Result $item) : void
@@ -343,30 +455,36 @@
 			
 			$item->metadata = new Registry($item->metadata);
 			
-			// Trigger the onContentPrepare event.
-			$item->summary = Helper::prepareContent($item->summary, $item->params, $item);
-			$item->body    = Helper::prepareContent($item->body, $item->params, $item);
+			if (empty($item->id))
+			{
+				$this->indexer->index($item);
+				
+				return;
+			}
+			
+			// Get real Virtuemart manufacturer data
+			$manufacturer = $this->getManufacturerData($item->id, $item->language);
 			
 			// Create a URL as identifier to recognise items again.
 			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
 			// Build the necessary route and path information.
 			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $item->language);
 			
-			// Add the processing instructions.
-			$item->addInstruction(Indexer::META_CONTEXT, 'metakey');
-			$item->addInstruction(Indexer::META_CONTEXT, 'metadesc');
+			// Add Virtuemart category data to the item
+			$this->setManufacturerData($item, $manufacturer);
 			
-			$item->published = $item->state;
-			$item->access    = 1;
+			// Add whole virtuemart object to access all other variables from triggered plugins
+			$item->setElement('virtuemart_manufacturer', $manufacturer);
 			
-			// Add the type taxonomy data.
-			$item->addTaxonomy('Type', 'Virtuemart Manufacturer');
-			
-			// Add the language taxonomy data.
-			$item->addTaxonomy('Language', $item->language);
+			// Trigger the onContentPrepare event.
+			$item->summary = Helper::prepareContent($item->summary, $item->params, $item);
+			$item->body    = Helper::prepareContent($item->body, $item->params, $item);
 			
 			// Get content extras.
 			Helper::getContentExtras($item);
+			
+			// Remove the virtuemart object, otherwise the serialization fails
+			unset($item->virtuemart_manufacturer);
 			
 			// Index the item.
 			$this->indexer->index($item);
@@ -412,16 +530,28 @@
 		 * @param   integer  $id  The id of the content item.
 		 *
 		 * @throws  \Exception on database error.
+		 *
 		 * @since   2.5
 		 */
 		public function getItem($id)
 		{
+			if (str_contains($id, '_'))
+			{
+				[$id, $language] = explode('_', $id);
+			}
+			
+			if (empty($language) || strlen($language) !== 5)
+			{
+				$language = Factory::getApplication()?->getLanguage()->getTag();
+			}
+			
 			// Get the list query and add the extra WHERE clause.
+			$db    = $this->getDatabase();
 			$query = $this->getListQuery();
 			$query->where('id = ' . (int) $id);
+			$query->where('language = ' . $db->quote($language));
 			
 			// Get the item to index.
-			$db = $this->getDatabase();
 			$db->setQuery($query);
 			$item = $db->loadAssoc();
 			
@@ -441,9 +571,9 @@
 		 * Method to get the URL for the item. The URL is how we look up the link
 		 * in the Finder index.
 		 *
-		 * @param   integer  $id         The id of the item.
-		 * @param   string   $extension  The extension the category is in.
-		 * @param   string   $view       The view for the URL.
+		 * @param   string  $id         The id of the item.
+		 * @param   string  $extension  The extension the category is in.
+		 * @param   string  $view       The view for the URL.
 		 *
 		 * @return  string  The URL of the item.
 		 *
@@ -451,6 +581,11 @@
 		 */
 		public function getUrl($id, $extension, $view, $language = null) : string
 		{
+			if (str_contains($id, '_'))
+			{
+				[$id, $language] = explode('_', $id);
+			}
+			
 			$url = "index.php?option=$extension&view=$view&virtuemart_manufacturer_id=$id";
 			
 			if (!empty($id))
@@ -479,11 +614,22 @@
 		 *
 		 * @since   2.5
 		 */
-		public function getRoute($id, $extension, $view, $language) : string
+		public function getRoute($id, $extension, $view, $language = null) : string
 		{
-			$language = strtolower($language);
+			if (str_contains($id, '_'))
+			{
+				[$id, $language] = explode('_', $id);
+			}
 			
-			return "index.php?option=$extension&view=category&virtuemart_category_id=0&virtuemart_manufacturer_id=$id&lang=$language";
+			$route = "index.php?option=$extension&view=category&virtuemart_category_id=0&virtuemart_manufacturer_id=$id";
+			
+			if ($language !== null && count((array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
+			{
+				$language = strtolower($language);
+				$route    .= "&lang=$language";
+			}
+			
+			return $route;
 		}
 		#endregion
 		
@@ -500,7 +646,10 @@
 		protected function getListQueriesForLanguages($query = null) : DatabaseQuery
 		{
 			$queries = [];
-			foreach ($this->getActiveVirtuemartLanguages() as $activeLanguage)
+			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			foreach ($activeLanguages as $activeLanguage)
 			{
 				$queries[] = $this->getListQueryForLanguage($activeLanguage);
 			}
@@ -520,52 +669,13 @@
 		 */
 		protected function getListQueryForLanguage(string $language, $query = null) : DatabaseQuery
 		{
-			$defaultLanguage   = $this->getDefaultVirtuemartLanguage();
-			$defaultLanguageDb = str_replace('-', '_', strtolower($defaultLanguage));
-			$languageDb        = str_replace('-', '_', strtolower($language));
-			
 			$db = $this->getDatabase();
-			
-			$queryFirstImage = $db->getQuery(true);
-			$queryFirstImage->select(['MIN(ordering) AS min_ordering',
-			                          $db->quoteName('virtuemart_manufacturer_id')])
-			                ->from($db->quoteName('#__virtuemart_manufacturer_medias', 'mmo'))
-			                ->group($db->quoteName('virtuemart_manufacturer_id'))
-			                ->alias('mmo');
 			
 			$query = $query instanceof DatabaseQuery ? $query : $db->getQuery(true);
 			
-			$query->select([$db->quoteName('mf.virtuemart_manufacturer_id', 'id'),
-			                $db->quoteName('mf.published', 'state'),
-			                $db->quoteName('mf.created_on', 'start_date'),
-			                $db->quoteName('mf.metarobot'),
-			                $db->quoteName('m.file_url', 'imageUrl'),
-			                $db->quoteName('m.file_title', 'imageAlt'),
+			$query->select([$db->quoteName('m.virtuemart_manufacturer_id', 'id'),
 			                $db->quote($language) . ' AS language'])
-			      ->from($db->quoteName($this->table, 'mf'))
-			      ->innerJoin($db->quoteName('#__virtuemart_manufacturers_' . $defaultLanguageDb, 'ml'), 'ml.virtuemart_manufacturer_id = mf.virtuemart_manufacturer_id')
-			      ->leftJoin($db->quoteName('#__virtuemart_manufacturer_medias', 'mm'), 'mm.virtuemart_manufacturer_id = mf.virtuemart_manufacturer_id')
-			      ->leftJoin($queryFirstImage, 'mmo.virtuemart_manufacturer_id = mf.virtuemart_manufacturer_id AND mmo.min_ordering = mm.ordering')
-			      ->leftJoin($db->quoteName('#__virtuemart_medias', 'm'), 'm.virtuemart_media_id = mm.virtuemart_media_id')
-			      ->where('(' . $db->quoteName('mm.virtuemart_media_id') . ' IS NULL OR (' . $db->quoteName('mmo.min_ordering') . ' IS NOT NULL))');
-			
-			if ($language !== $defaultLanguage)
-			{
-				$query->select(['IFNULL(' . $db->quoteName('additional_ml.mf_name') . ', ' . $db->quoteName('ml.mf_name') . ') AS title',
-				                'IFNULL(' . $db->quoteName('additional_ml.slug') . ', ' . $db->quoteName('ml.slug') . ') AS alias',
-				                'IFNULL(' . $db->quoteName('additional_ml.mf_desc') . ', ' . $db->quoteName('ml.mf_desc') . ') AS summary',
-				                'IFNULL(' . $db->quoteName('additional_ml.metakey') . ', ' . $db->quoteName('ml.metakey') . ') AS metakey',
-				                'IFNULL(' . $db->quoteName('additional_ml.metadesc') . ', ' . $db->quoteName('ml.metadesc') . ') AS metadesc'])
-				      ->leftJoin($db->quoteName('#__virtuemart_manufacturers_' . $languageDb, 'additional_ml'), 'additional_ml.virtuemart_manufacturer_id = mf.virtuemart_manufacturer_id');
-			}
-			else
-			{
-				$query->select([$db->quoteName('ml.mf_name', 'title'),
-				                $db->quoteName('ml.slug', 'alias'),
-				                $db->quoteName('ml.mf_desc', 'summary'),
-				                $db->quoteName('ml.metakey'),
-				                $db->quoteName('ml.metadesc')]);
-			}
+			      ->from($db->quoteName($this->table, 'm'));
 			
 			return $query;
 		}
@@ -611,77 +721,106 @@
 		}
 		#endregion
 		
-		#region Virtuemart Config
+		#region Virtuemart Data
+		
 		/**
-		 * Method to get the Virtuemart config
+		 * Gets the data for a virtuemart category directly from virtuemart based on the given language
 		 *
-		 * @return string
+		 * @param   int     $virtuemartManufacturerId
+		 * @param   string  $language
 		 *
-		 * @since 4.3.0
+		 * @return \JTable|object|null
+		 *
+		 * @since        1.2.0
+		 *
+		 * @noinspection MissingIssetImplementationInspection
 		 */
-		protected function getVirtuemartConfig() : string
+		protected function getManufacturerData(int $virtuemartManufacturerId, string $language)
 		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
+			// Changes the currently active backend language to the language which is currently indexed, needed for caches and correct description tables of virtuemart
+			vmLanguage::setLanguageByTag($language);
 			
-			$query->select($db->quoteName('config'));
-			$query->from($db->quoteName('#__virtuemart_configs'));
-			$query->where($db->quoteName('virtuemart_config_id') . ' = 1');
-			$db->setQuery($query);
+			/** @var VirtueMartModelManufacturer $modelManufacturer */
+			$modelManufacturer = VmModel::getModel('Manufacturer');
+			$manufacturer      = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
 			
-			return $db->loadResult();
+			if (($manufacturer === null || empty($manufacturer->mf_name)) && $language !== $this->defaultLanguage)
+			{
+				vmLanguage::setLanguageByTag($this->defaultLanguage);
+				$manufacturer = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
+				vmLanguage::setLanguageByTag($language);
+			}
+			
+			$modelManufacturer->addImages($manufacturer, 1);
+			
+			return $manufacturer;
 		}
 		
 		/**
-		 * Method to get the default language from Virtuemart config
+		 * Sets the virtuemart manufacturer data to the index-item
 		 *
-		 * @return string
+		 * @param $item
+		 * @param $manufacturer
 		 *
-		 * @since 4.3.0
+		 * @since        1.2.0
+		 *
+		 * @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
 		 */
-		protected function getDefaultVirtuemartLanguage() : string
+		protected function setManufacturerData(&$item, $manufacturer) : void
 		{
-			$config = $this->getVirtuemartConfig();
+			$item->title      = $manufacturer->mf_name;
+			$item->alias      = $manufacturer->slug;
+			$item->summary    = $manufacturer->mf_desc;
+			$item->metakey    = $manufacturer->metakey;
+			$item->metadesc   = $manufacturer->metadesc;
+			$item->state      = $manufacturer->published;
+			$item->published  = $manufacturer->published;
+			$item->access     = 1;
+			$item->start_date = $manufacturer->created_on;
+			$item->metarobot  = $manufacturer->metarobot;
 			
-			$defaultLanguage = substr($config, strpos($config, 'vmDefLang="') + strlen('vmDefLang="'));
-			$defaultLanguage = substr($defaultLanguage, 0, strpos($defaultLanguage, '"'));
-			$defaultLanguage = (string) str_replace(['"'], '', $defaultLanguage);
-			
-			if (empty($defaultLanguage))
+			if (!empty($manufacturer->images))
 			{
-				$defaultLanguage = 'en-GB';
+				$item->imageUrl = $manufacturer->images[0]->file_url;
+				$item->imageAlt = $manufacturer->images[0]->file_title;
 			}
 			
-			return $defaultLanguage;
+			if (empty($item->imageUrl))
+			{
+				$item->imageUrl = self::getVirtuemartNoImageUrl();
+				$item->imageAlt = $item->title;
+			}
+			
+			// Add the processing instructions.
+			$item->addInstruction(Indexer::META_CONTEXT, 'metakey');
+			$item->addInstruction(Indexer::META_CONTEXT, 'metadesc');
+			
+			// Add the type taxonomy data.
+			$item->addTaxonomy('Type', 'Virtuemart Manufacturer');
+			
+			// Add the language taxonomy data.
+			$item->addTaxonomy('Language', $item->language);
 		}
 		
 		/**
-		 * Method to get all active languages from Virtuemart config
+		 * Get the Virtuemart no image url
 		 *
-		 * @return array
+		 * @return mixed|string|null
 		 *
-		 * @since 4.3.0
+		 * @since 1.2
 		 */
-		protected function getActiveVirtuemartLanguages() : array
+		public static function getVirtuemartNoImageUrl()
 		{
-			$config = $this->getVirtuemartConfig();
+			static $fileUrl = null;
 			
-			$activeLanguages = substr($config, strpos($config, 'active_languages=') + strlen('active_languages='));
-			$activeLanguages = substr($activeLanguages, 0, strpos($activeLanguages, ']'));
-			$activeLanguages = str_replace(['[', ']', '"'], '', $activeLanguages);
-			$activeLanguages = explode(',', $activeLanguages);
-			
-			if (empty($activeLanguages))
+			if ($fileUrl === null)
 			{
-				$activeLanguages[] = $this->getDefaultVirtuemartLanguage() ?? 'en-GB';
+				$vmMediaHandler = new VmMediaHandler();
+				$vmMediaHandler->setNoImageSet();
+				$fileUrl = $vmMediaHandler->file_url;
 			}
 			
-			if (!is_array($activeLanguages))
-			{
-				$activeLanguages[] = $activeLanguages;
-			}
-			
-			return $activeLanguages;
+			return $fileUrl;
 		}
 		#endregion
 	}

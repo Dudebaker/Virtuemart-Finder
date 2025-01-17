@@ -8,6 +8,7 @@
 	 */
 	
 	/** @noinspection PhpUnused */
+	/** @noinspection PhpMultipleClassDeclarationsInspection */
 	
 	namespace Joomla\Plugin\System\VirtuemartFinderHelper\Extension;
 	
@@ -17,6 +18,7 @@
 	use Joomla\Event\SubscriberInterface;
 	use Joomla\CMS\Event\Finder as FinderEvent;
 	use stdClass;
+	use VmConfig;
 	
 	defined('_JEXEC') or die;
 	
@@ -115,10 +117,17 @@
 				return false;
 			}
 			
+			if(!is_array($ids))
+			{
+				$ids = [$ids];
+			}
+			
 			$dispatcher   = $app->getDispatcher();
 			$messageQueue = $app->getMessageQueue();
 			$resultString = $task === 'publish' ? 'COM_VIRTUEMART_STRING_PUBLISHED_SUCCESS' : 'COM_VIRTUEMART_STRING_UNPUBLISHED_SUCCESS';
 			$resultText   = Text::sprintf($resultString, Text::_('COM_VIRTUEMART_' . strtoupper($view)));
+			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
 			
 			foreach ($messageQueue as $message)
 			{
@@ -126,11 +135,18 @@
 				{
 					PluginHelper::importPlugin('finder');
 					
-					$dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
-						'context' => 'com_virtuemart.' . strtolower($view),
-						'subject' => $ids,
-						'value'   => $task === 'publish' ? 1 : 0
-					]));
+					foreach ($activeLanguages as $activeLanguage)
+					{
+						$ids_language = array_map(static function($field) use ($activeLanguage) {
+							return $field . '_' . $activeLanguage;
+						}, $ids);
+						
+						$dispatcher->dispatch('onFinderChangeState', new FinderEvent\AfterChangeStateEvent('onFinderChangeState', [
+							'context' => 'com_virtuemart.' . strtolower($view),
+							'subject' => $ids_language,
+							'value'   => $task === 'publish' ? 1 : 0
+						]));
+					}
 					break;
 				}
 			}
@@ -185,20 +201,25 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_SAVED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
 				{
 					PluginHelper::importPlugin('finder');
 					
-					$obj     = new stdClass();
-					$obj->id = $id;
-					
-					$dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
-						'context' => 'com_virtuemart.manufacturer',
-						'subject' => $obj,
-						'isNew'   => true,
-					]));
+					foreach ($activeLanguages as $activeLanguage)
+					{
+						$obj     = new stdClass();
+						$obj->id = $id . '_' . $activeLanguage;
+						
+						$dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
+							'context' => 'com_virtuemart.manufacturer',
+							'subject' => $obj,
+							'isNew'   => true,
+						]));
+					}
 					break;
 				}
 			}
@@ -254,6 +275,8 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_DELETED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
+			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
@@ -262,13 +285,16 @@
 					
 					foreach ($ids as $id)
 					{
-						$obj     = new stdClass();
-						$obj->id = $id;
-						
-						$dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
-							'context' => 'com_virtuemart.manufacturer',
-							'subject' => $obj
-						]));
+						foreach ($activeLanguages as $activeLanguage)
+						{
+							$obj     = new stdClass();
+							$obj->id = $id . '_' . $activeLanguage;
+							
+							$dispatcher->dispatch('onFinderAfterDelete', new FinderEvent\AfterDeleteEvent('onFinderAfterDelete', [
+								'context' => 'com_virtuemart.manufacturer',
+								'subject' => $obj
+							]));
+						}
 					}
 					break;
 				}

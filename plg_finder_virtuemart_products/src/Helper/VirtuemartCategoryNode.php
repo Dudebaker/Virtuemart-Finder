@@ -11,10 +11,10 @@
 	
 	namespace Joomla\Plugin\Finder\VirtuemartProducts\Helper;
 	
-	use Joomla\CMS\Factory;
 	use Joomla\CMS\Tree\NodeInterface;
 	use Joomla\CMS\Tree\NodeTrait;
-	use Joomla\Database\DatabaseInterface;
+	use VirtueMartModelCategory;
+	use VmModel;
 	
 	defined('JPATH_PLATFORM') or die;
 	
@@ -108,49 +108,51 @@
 		protected bool $_allChildrenloaded = false;
 		
 		/**
-		 * @param $id
+		 * @param $category
 		 * @param $language
 		 *
 		 *
 		 * @return \Joomla\Plugin\Finder\VirtuemartProducts\Helper\VirtuemartCategoryNode
 		 * @since version
 		 */
-		public static function getCategory($id, $language) : VirtuemartCategoryNode
+		public static function getCategory($category, $language) : VirtuemartCategoryNode
 		{
-			$languageDb = str_replace('-', '_', strtolower($language));
+			$categoryNode              = new self();
+			$categoryNode->id          = $category->virtuemart_category_id;
+			$categoryNode->title       = $category->category_name;
+			$categoryNode->description = $category->category_description;
+			$categoryNode->published   = $category->published;
+			$categoryNode->language    = $language;
+			$categoryNode->slug        = $category->slug;
+			$categoryNode->access      = 1;
 			
-			$db    = Factory::getContainer()->get(DatabaseInterface::class);
-			$query = $db->getQuery(true);
-			$query->select([$db->quoteName('c.virtuemart_category_id'),
-			                $db->quoteName('c.published'),
-			                $db->quoteName('cl.category_name'),
-			                $db->quoteName('cl.slug'),
-			                $db->quoteName('cl.category_description'),
-			                $db->quoteName('cc.category_parent_id'),
-			                $db->quote($language) . ' AS language'])
-			      ->from($db->quoteName('#__virtuemart_categories', 'c'))
-			      ->innerJoin($db->quoteName('#__virtuemart_categories_' . $languageDb, 'cl'), 'cl.virtuemart_category_id = c.virtuemart_category_id')
-			      ->innerJoin($db->quoteName('#__virtuemart_category_categories', 'cc'), 'cc.category_child_id = c.virtuemart_category_id')
-			      ->where($db->quoteName('c.virtuemart_category_id') . ' = ' . $db->quote($id));
-			
-			$result = $db->setQuery($query)->loadObject();
-			
-			$category              = new self();
-			$category->id          = $result->virtuemart_category_id;
-			$category->parent_id   = $result->category_parent_id;
-			$category->title       = $result->category_name;
-			$category->description = $result->category_description;
-			$category->published   = $result->published;
-			$category->language    = $result->language;
-			$category->slug        = $result->slug;
-			$category->access      = 1;
-			
-			if (!empty($category->parent_id))
+			if (!empty($category->parents))
 			{
-				$category->setParent(self::getCategory($category->parent_id, $language));
+				$parentCategory      = null;
+				$parentCategoryCount = count($category->parents);
+				
+				for ($i = $parentCategoryCount - 1; $i >= 0; $i--)
+				{
+					if ($category->parents[$i]->virtuemart_category_id !== $category->virtuemart_category_id)
+					{
+						$parentCategory = $category->parents[$i];
+						break;
+					}
+				}
+				
+				if ($parentCategory !== null)
+				{
+					$categoryNode->parent_id = $parentCategory->virtuemart_category_id;
+					
+					/** @var VirtueMartModelCategory $modelCategory */
+					$modelCategory  = VmModel::getModel('Category');
+					$parentCategory = $modelCategory->getCategory($parentCategory->virtuemart_category_id, false);
+					
+					$categoryNode->setParent(self::getCategory($parentCategory, $language));
+				}
 			}
 			
-			return $category;
+			return $categoryNode;
 		}
 		
 		
