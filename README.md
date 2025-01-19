@@ -2,7 +2,7 @@
 
 Virtuemart does not have Smart Search plugins for the newer Joomla integrated Search-Engine.
 
-Here is a complete package which contains all necessary plugins to add Virtuemart products, categories and manufacturers entries to the Finder Index and automatically update it upon changes in Virtuemart.
+Here is a complete package which contains all necessary plugins to add Virtuemart products, categories and manufacturers entries to the Finder (áka Smart Search) Index and automatically update it upon changes in Virtuemart.
 
 Since for some actions the Virtuemart-Core does not have any events (publish/unpublish/save,delete manufacturer), these specific events were realized with a system helper plugin.
 
