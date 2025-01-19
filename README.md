@@ -6,6 +6,8 @@ Here is a complete package which contains all necessary plugins to add Virtuemar
 
 Since for some actions the Virtuemart-Core does not have any events (publish/unpublish/save,delete manufacturer), these specific events were realized with a system helper plugin.
 
+---
+
 Customfields (incl. Breakdesign CustomFilter!) are supported too!
 
 All customfields which have the search parameter enabled are automatically indexed.
@@ -21,9 +23,9 @@ The Finder Virtuemart Products plugin does have some additional settings:
 
 For Breakdesign Customfields are two additional settings which are helpful for customfields that represent checkboxes:
 
-- If the "checkbox" has the value "Yes" then only the customfield title will be indexed.
-- If the "checkbox" has the value "No" then the customfield will be completely ignored.
-- In the settings you can add your own values which represent "Yes" and "No".
+- if the "checkbox" has the value "Yes" then only the customfield title will be indexed
+- if the "checkbox" has the value "No" then the customfield will be completely ignored
+- in the settings you can add your own values which represent "Yes" and "No"
 
 ---
 ---
@@ -44,7 +46,7 @@ You have access to more or less all values of virtuemart product/category/manufa
 ---
 ---
 
-### Tested with Virtuemart 4.4.4 and Joomla 5.2.3
+### Tested with Joomla 5.2.3 and Virtuemart 4.4.4
 
 ---
 
