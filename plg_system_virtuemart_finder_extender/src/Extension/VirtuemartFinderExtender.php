@@ -71,11 +71,11 @@
 			// Add additional information to the index-entry as seen below, choose one of the XXX_CONTEXT constants
 			
 			$element->setElement('Title', 'value123');
-			$element->addInstruction(Indexer::TITLE_CONTEXT, 'value123');
-			//$element->addInstruction(Indexer::TEXT_CONTEXT, 'value123');
-			//$element->addInstruction(Indexer::META_CONTEXT, 'value123');
-			//$element->addInstruction(Indexer::PATH_CONTEXT, 'value123');
-			//$element->addInstruction(Indexer::MISC_CONTEXT, 'value123');
+			$element->addInstruction(Indexer::TITLE_CONTEXT, 'Title');
+			//$element->addInstruction(Indexer::TEXT_CONTEXT, 'Title');
+			//$element->addInstruction(Indexer::META_CONTEXT, 'Title');
+			//$element->addInstruction(Indexer::PATH_CONTEXT, 'Title');
+			//$element->addInstruction(Indexer::MISC_CONTEXT, 'Title');
 			
 			
 			//
