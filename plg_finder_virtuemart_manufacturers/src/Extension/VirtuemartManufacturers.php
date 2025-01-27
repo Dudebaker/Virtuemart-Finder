@@ -118,16 +118,41 @@
 		 *
 		 * @since 1.2
 		 */
-		protected string $defaultLanguage = 'en-GB';
+		protected static string $defaultLanguage = 'en-GB';
+		
+		/**
+		 * Saves the active virtuemart languages
+		 *
+		 * @var array
+		 *
+		 * @since 1.2
+		 */
+		protected static array $activeLanguages;
+		
+		/**
+		 * Image which should be used, if nothing is assigned
+		 *
+		 * @var string
+		 *
+		 * @since 1.2
+		 */
+		protected static string $noImageUrl;
 		
 		#endregion
 		
 		public function __construct(DispatcherInterface $dispatcher, array $config)
 		{
+			if (!class_exists('VmConfig'))
+			{
+				require(JPATH_ROOT . '/administrator/components/com_virtuemart/helpers/config.php');
+			}
+			
 			VmConfig::loadConfig();
 			vmLanguage::loadJLang('com_virtuemart', true);
 			
-			$this->defaultLanguage = (string)VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
+			self::$defaultLanguage = (string) VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
+			self::setActiveLanguages();
+			self::setVirtuemartNoImageUrl();
 			
 			parent::__construct($dispatcher, $config);
 		}
@@ -175,9 +200,7 @@
 					return;
 			}
 			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
-			if (empty($activeLanguages))
+			if (empty(self::$activeLanguages))
 			{
 				$this->remove($id);
 				
@@ -193,7 +216,7 @@
 				$idWithoutLanguage = $id;
 			}
 			
-			foreach ($activeLanguages as $activeLanguage)
+			foreach (self::$activeLanguages as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -227,9 +250,7 @@
 				return;
 			}
 			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
-			if (empty($activeLanguages))
+			if (empty(self::$activeLanguages))
 			{
 				$this->reindex($row->id);
 				
@@ -245,7 +266,7 @@
 				$idWithoutLanguage = $row->id;
 			}
 			
-			foreach ($activeLanguages as $activeLanguage)
+			foreach (self::$activeLanguages as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -404,9 +425,7 @@
 				return strtolower(substr(strstr($field, '&lang='), strlen('&lang=')));
 			}, $existingItems);
 			
-			$activeLanguages = (array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
-			foreach ($activeLanguages as $activeLanguage)
+			foreach (self::$activeLanguages as $activeLanguage)
 			{
 				if (!in_array(strtolower($activeLanguage), $existingLanguages, true))
 				{
@@ -647,9 +666,7 @@
 		{
 			$queries = [];
 			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
-			foreach ($activeLanguages as $activeLanguage)
+			foreach (self::$activeLanguages as $activeLanguage)
 			{
 				$queries[] = $this->getListQueryForLanguage($activeLanguage);
 			}
@@ -744,9 +761,9 @@
 			$modelManufacturer = VmModel::getModel('Manufacturer');
 			$manufacturer      = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
 			
-			if (($manufacturer === null || empty($manufacturer->mf_name)) && $language !== $this->defaultLanguage)
+			if (($manufacturer === null || empty($manufacturer->mf_name)) && $language !== self::$defaultLanguage)
 			{
-				vmLanguage::setLanguageByTag($this->defaultLanguage);
+				vmLanguage::setLanguageByTag(self::$defaultLanguage);
 				$manufacturer = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
 				vmLanguage::setLanguageByTag($language);
 			}
@@ -787,7 +804,7 @@
 			
 			if (empty($item->imageUrl))
 			{
-				$item->imageUrl = self::getVirtuemartNoImageUrl();
+				$item->imageUrl = self::$noImageUrl;
 				$item->imageAlt = $item->title;
 			}
 			
@@ -803,24 +820,44 @@
 		}
 		
 		/**
-		 * Get the Virtuemart no image url
+		 * Get and sets the Virtuemart no image url
 		 *
 		 * @return mixed|string|null
 		 *
 		 * @since 1.2
 		 */
-		public static function getVirtuemartNoImageUrl()
+		public static function setVirtuemartNoImageUrl()
 		{
-			static $fileUrl = null;
-			
-			if ($fileUrl === null)
+			if (empty(self::$noImageUrl))
 			{
 				$vmMediaHandler = new VmMediaHandler();
 				$vmMediaHandler->setNoImageSet();
-				$fileUrl = $vmMediaHandler->file_url;
+				self::$noImageUrl = $vmMediaHandler->file_url;
 			}
 			
-			return $fileUrl;
+			return self::$noImageUrl;
+		}
+		
+		/**
+		 * Gets and sets all active Virtuemart languages
+		 *
+		 * @return array
+		 *
+		 * @since 1.2.1
+		 */
+		public static function setActiveLanguages() : array
+		{
+			if (empty(self::$activeLanguages))
+			{
+				self::$activeLanguages = (array) VmConfig::get('active_languages', [self::$defaultLanguage]);
+				
+				if (empty(self::$activeLanguages))
+				{
+					self::$activeLanguages[] = self::$defaultLanguage;
+				}
+			}
+			
+			return self::$activeLanguages;
 		}
 		#endregion
 	}

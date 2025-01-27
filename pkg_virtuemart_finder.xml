@@ -8,7 +8,7 @@
     <creationDate>2024-07</creationDate>
     <copyright>(C) Open Source Matters, Inc.</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>1.2.0</version>
+    <version>1.2.1</version>
     <description><![CDATA[This package contains all necessary plugins to add Virtuemart products, categories and manufacturers entries to the Finder Index and automatically update it upon changes in Virtuemart.<br><b>You have to enable all plugins after the installation!</b>]]></description>
     <files>
         <file type="plugin" group="system" id="virtuemart_finder_helper">plg_system_virtuemart_finder_helper.zip</file>

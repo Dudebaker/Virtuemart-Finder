@@ -7,7 +7,7 @@
 	<creationDate>2024-07</creationDate>
 	<copyright>(C) Open Source Matters, Inc.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<description>PLG_FINDER_VIRTUEMART_CATEGORIES_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Finder\VirtuemartCategories</namespace>
 	<files>
