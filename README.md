@@ -12,7 +12,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 <b>After the installation you have to enable all plugins!</b>
 
-<b>Tested with:</b><br>
+<b>Tested with:</b><br> 
 [![](https://img.shields.io/badge/Joomla-v4.4.10-2E486B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)
 [![](https://img.shields.io/badge/Joomla-v5.1.2-2E5C6B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)
 [![](https://img.shields.io/badge/Joomla-v5.2.3-2E5C6B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)
