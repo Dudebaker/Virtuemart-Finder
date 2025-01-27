@@ -33,6 +33,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 - GTIN
 - Metakeys
 - Metadescription
+- Image (only the first)
 - Category Names (all levels)
 - Manufacturer Names
 - Customfields <b>(incl. Breakdesign CustomFilter!)</b> which have the search parameter enabled
@@ -42,12 +43,14 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 - Description
 - Metakeys
 - Metadescription
+- Image
 
 <b>Manufacturers:</b>
 - Name
 - Description
 - Metakeys
 - Metadescription
+- Image
 
 ---
 
