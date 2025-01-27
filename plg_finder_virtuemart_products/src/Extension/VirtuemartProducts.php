@@ -778,12 +778,12 @@
 			
 			/** @var VirtueMartModelProduct $modelProduct */
 			$modelProduct = VmModel::getModel('Product');
-			$product      = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1]);
+			$product      = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1,2]);
 			
 			if (empty($product->product_name) && $language !== self::$defaultLanguage)
 			{
 				vmLanguage::setLanguageByTag(self::$defaultLanguage);
-				$product = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1]);
+				$product = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1,2]);
 				vmLanguage::setLanguageByTag($language);
 			}
 			
@@ -796,7 +796,7 @@
 			
 			if (($useParentImage || $useParentCategory || $useParentManufacturer) && !empty($product->product_parent_id))
 			{
-				$productParent = $modelProduct->getProduct($product->product_parent_id, true, false, false, 1, [1]);
+				$productParent = $modelProduct->getProduct($product->product_parent_id, true, false, false, 1, [1,2]);
 			}
 			
 			if ($useParentImage && empty($product->virtuemart_media_id) && !empty($productParent->virtuemart_media_id))
