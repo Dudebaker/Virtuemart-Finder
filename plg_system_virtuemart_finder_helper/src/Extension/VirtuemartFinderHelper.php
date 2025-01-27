@@ -24,6 +24,8 @@
 	
 	class VirtuemartFinderHelper extends CMSPlugin implements SubscriberInterface
 	{
+		private array $activeLanguages = [];
+		
 		#region Joomla Events
 		/**
 		 * {@inheritdoc}
@@ -61,6 +63,13 @@
 			if ($option !== 'com_virtuemart')
 			{
 				return;
+			}
+			
+			$this->activeLanguages = (array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			if (empty($this->activeLanguages))
+			{
+				$this->activeLanguages = [VmConfig::$jDefLangTag];
 			}
 			
 			$this->CheckTaskPublishUnpublish() ||
@@ -126,16 +135,14 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultString = $task === 'publish' ? 'COM_VIRTUEMART_STRING_PUBLISHED_SUCCESS' : 'COM_VIRTUEMART_STRING_UNPUBLISHED_SUCCESS';
 			$resultText   = Text::sprintf($resultString, Text::_('COM_VIRTUEMART_' . strtoupper($view)));
-			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
+
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
 				{
 					PluginHelper::importPlugin('finder');
 					
-					foreach ($activeLanguages as $activeLanguage)
+					foreach ($this->activeLanguages as $activeLanguage)
 					{
 						$ids_language = array_map(static function($field) use ($activeLanguage) {
 							return $field . '_' . $activeLanguage;
@@ -201,15 +208,13 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_SAVED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
 				{
 					PluginHelper::importPlugin('finder');
 					
-					foreach ($activeLanguages as $activeLanguage)
+					foreach ($this->activeLanguages as $activeLanguage)
 					{
 						$obj     = new stdClass();
 						$obj->id = $id . '_' . $activeLanguage;
@@ -275,8 +280,6 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultText   = Text::sprintf('COM_VIRTUEMART_STRING_DELETED', Text::_('COM_VIRTUEMART_MANUFACTURER'));
 			
-			$activeLanguages = VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
-			
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
@@ -285,7 +288,7 @@
 					
 					foreach ($ids as $id)
 					{
-						foreach ($activeLanguages as $activeLanguage)
+						foreach ($this->activeLanguages as $activeLanguage)
 						{
 							$obj     = new stdClass();
 							$obj->id = $id . '_' . $activeLanguage;

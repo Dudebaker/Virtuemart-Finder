@@ -773,17 +773,34 @@
 			$useParentCategory     = $useCategory && $this->params->get('use_parent_category', false);
 			$useParentManufacturer = $useManufacturer && $this->params->get('use_parent_manufacturer', false);
 			
+			$shoppergroups = $this->params->get('shoppergroups');
+			
+			if (empty($shoppergroups))
+			{
+				$shoppergroups = [0,1,2];
+			}
+			else
+			{
+				$tmp = [];
+				foreach ($shoppergroups as $entry)
+				{
+					$tmp[] = (int)$entry->shoppergroup_id;
+				}
+				$shoppergroups = $tmp;
+			}
+			
+			
 			// Changes the currently active backend language to the language which is currently indexed, needed for caches and correct description tables of virtuemart
 			vmLanguage::setLanguageByTag($language);
 			
 			/** @var VirtueMartModelProduct $modelProduct */
 			$modelProduct = VmModel::getModel('Product');
-			$product      = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1,2]);
+			$product      = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, $shoppergroups);
 			
 			if (empty($product->product_name) && $language !== self::$defaultLanguage)
 			{
 				vmLanguage::setLanguageByTag(self::$defaultLanguage);
-				$product = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, [1,2]);
+				$product = $modelProduct->getProduct($virtuemartProductId, true, false, false, 1, $shoppergroups);
 				vmLanguage::setLanguageByTag($language);
 			}
 			
@@ -796,7 +813,7 @@
 			
 			if (($useParentImage || $useParentCategory || $useParentManufacturer) && !empty($product->product_parent_id))
 			{
-				$productParent = $modelProduct->getProduct($product->product_parent_id, true, false, false, 1, [1,2]);
+				$productParent = $modelProduct->getProduct($product->product_parent_id, true, false, false, 1, $shoppergroups);
 			}
 			
 			if ($useParentImage && empty($product->virtuemart_media_id) && !empty($productParent->virtuemart_media_id))
@@ -1153,15 +1170,12 @@
 			
 			if (empty(self::$yesNoParams))
 			{
-				$checkBoxTexYesDefault = explode('|', 'yes|oui|sí|ja|是|はい|да|oui|igen|sim|نعم|tak|ano|예|evet|כן|ใช่|haa|igen|igen|aye|yebo|bai|igen');
-				$checkBoxTexNoDefault  = explode('|', 'no|non|no|nein|不是|いいえ|нет|non|nem|não|لا|nie|ne|아니요|hayır|לא|ไม่|hapana|nem|nem|nay|cha|ez|ez');
-				
 				$checkboxTextYes = $this->params->get('checkbox_text_yes');
 				$checkboxTextNo  = $this->params->get('checkbox_text_no');
 				
 				if (empty($checkboxTextYes))
 				{
-					$checkboxTextYes = $checkBoxTexYesDefault;
+					$checkboxTextYes = explode('|', 'yes|oui|sí|ja|是|はい|да|oui|igen|sim|نعم|tak|ano|예|evet|כן|ใช่|haa|igen|igen|aye|yebo|bai|igen');
 				}
 				else
 				{
@@ -1175,7 +1189,7 @@
 				
 				if (empty($checkboxTextNo))
 				{
-					$checkboxTextNo = $checkBoxTexNoDefault;
+					$checkboxTextNo = explode('|', 'no|non|no|nein|不是|いいえ|нет|non|nem|não|لا|nie|ne|아니요|hayır|לא|ไม่|hapana|nem|nem|nay|cha|ez|ez');
 				}
 				else
 				{

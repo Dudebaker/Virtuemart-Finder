@@ -7,7 +7,7 @@
 	<creationDate>2024-07</creationDate>
 	<copyright>(C) Open Source Matters, Inc.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 	<description>PLG_FINDER_VIRTUEMART_PRODUCTS_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Finder\VirtuemartProducts</namespace>
 	<files>
@@ -23,6 +23,22 @@
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
+				<field  name="shoppergroups"
+						type="subform"
+						label="PLG_FINDER_VIRTUEMART_PRODUCTS_SHOPPERGROUPS_LBL"
+						description="PLG_FINDER_VIRTUEMART_PRODUCTS_SHOPPERGROUPS_DESC"
+						multiple="true"
+						class="btn-group"
+						layout="joomla.form.field.subform.repeatable-table">
+					<form hidden="true" name="shoppergroups_modal" repeat="true">
+						<field  name="shoppergroup_id"
+								type="number"
+								default=""
+								hidelabel="true">
+						</field>
+					</form>
+				</field>
+				<field name="spacer_zero" type="spacer" hr="true"/>
 				<field name="allow_products_without_category_assignment" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_ALLOW_PRODUCTS_WITHOUT_CATEGORY_ASSIGNMENT_LBL" description="" class="btn-group btn-group-yesno">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>

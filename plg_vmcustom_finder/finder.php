@@ -9,6 +9,7 @@
 	
 	/** @noinspection PhpUnused */
 	/** @noinspection PhpMultipleClassDeclarationsInspection */
+	
 	/** @noinspection AutoloadingIssuesInspection */
 	
 	use Joomla\CMS\Application\CMSApplicationInterface;
@@ -23,7 +24,7 @@
 	{
 		protected CMSApplicationInterface $app;
 		protected DispatcherInterface $dispatcher;
-		protected array $activeLanguages;
+		protected array $activeLanguages = [];
 		
 		/**
 		 * @throws \Exception
@@ -36,6 +37,11 @@
 			VmConfig::loadConfig();
 			
 			$this->activeLanguages = (array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			
+			if (empty($this->activeLanguages))
+			{
+				$this->activeLanguages = [VmConfig::$jDefLangTag];
+			}
 			
 			parent::__construct($subject, $config);
 		}
@@ -53,7 +59,7 @@
 				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
 					'context' => 'com_virtuemart.product',
 					'subject' => $obj,
-					'isNew'   => (bool) $data['new'],
+					'isNew'   => (bool)$data['new'],
 				]));
 			}
 		}
@@ -88,7 +94,7 @@
 				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
 					'context' => 'com_virtuemart.category',
 					'subject' => $obj,
-					'isNew'   => (bool) $data['new'],
+					'isNew'   => (bool)$data['new'],
 				]));
 			}
 		}
@@ -124,7 +130,7 @@
 				$this->dispatcher->dispatch('onFinderAfterSave', new FinderEvent\AfterSaveEvent('onFinderAfterSave', [
 					'context' => 'com_virtuemart.manufacturer',
 					'subject' => $obj,
-					'isNew'   => (bool) $data['new'],
+					'isNew'   => (bool)$data['new'],
 				]));
 			}
 		}
