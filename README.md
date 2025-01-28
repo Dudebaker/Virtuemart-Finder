@@ -87,8 +87,8 @@ You have access to more or less all values of virtuemart product/category/manufa
 
 If you enable Joomla debugging you will get a second option on the Smart Search Index button "Index debugging".<br>
 Here you will see anything what got indexed for an specific item.<br>
-If you get an error while the indexing is running, you can get here more informations what went wrong.<br>
-To find out which ID stopped the indexing you can enable logging in the Smart Search configuration and get a protocol in your logs folder.
+If you get an error while the indexing is running, you can get here more informations what went wrong (but you have to know the ID).<br>
+Or you enable can enable logging in the Smart Search configuration and get a protocol in your logs folder while the indexing is running.
 
 - Select the context you want to debug
 - Enter the product/category/manufacturer ID
