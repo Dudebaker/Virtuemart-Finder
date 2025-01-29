@@ -80,7 +80,7 @@ You can extend what should be indexed by using the Virtuemart Finder Extender pl
 
 You have access to more or less all values of virtuemart product/category/manufacturer which you already use in the templates.
 
-[![Download Virtuemart Finder Extender](https://img.shields.io/badge/Download_Virtuemart_Finder_Extender-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.1/plg_system_virtuemart_finder_extender.zip)
+[![Download Virtuemart Finder Extender](https://img.shields.io/badge/Download_Virtuemart_Finder_Extender-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.0/plg_system_virtuemart_finder_extender.zip)
 
 ---
 
