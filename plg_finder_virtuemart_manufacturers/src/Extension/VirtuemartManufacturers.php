@@ -796,7 +796,7 @@
 			$item->start_date = $manufacturer->created_on;
 			$item->metarobot  = $manufacturer->metarobot;
 			
-			if (!empty($manufacturer->images))
+			if (!empty($manufacturer->images) && !in_array(strtolower(trim($manufacturer->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{
 				$item->imageUrl = $manufacturer->images[0]->file_url;
 				$item->imageAlt = $manufacturer->images[0]->file_title;

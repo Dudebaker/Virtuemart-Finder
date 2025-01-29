@@ -8,7 +8,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 <br>
 
-[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.2/pkg_virtuemart_finder.zip)
+[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.3/pkg_virtuemart_finder.zip)
 
 <b>After the installation you have to enable all plugins!</b>
 
@@ -65,6 +65,7 @@ The Virtuemart Products Finder plugin does have some additional settings:
 - use the parent image if the child does not have anything assigned
 - use the parent category if the child does not have anything assigned
 - use the parent manufacturer if the child does not have anything assigned
+- use customfields as taxonomy, they will then not only be available for searching but also for filtering (and better usage in templates)
 
 For Breakdesign Customfields are two additional settings which are helpful for customfields that represent checkboxes:
 - if the "checkbox" has the value "Yes" then only the customfield title will be indexed

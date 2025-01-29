@@ -796,7 +796,7 @@
 			$item->start_date = $category->created_on;
 			$item->metarobot  = $category->metarobot;
 			
-			if (!empty($category->images))
+			if (!empty($category->images) && !in_array(strtolower(trim($category->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{
 				$item->imageUrl = $category->images[0]->file_url;
 				$item->imageAlt = $category->images[0]->file_title;

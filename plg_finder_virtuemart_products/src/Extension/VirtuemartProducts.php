@@ -777,14 +777,14 @@
 			
 			if (empty($shoppergroups))
 			{
-				$shoppergroups = [0,1,2];
+				$shoppergroups = [0, 1, 2];
 			}
 			else
 			{
 				$tmp = [];
 				foreach ($shoppergroups as $entry)
 				{
-					$tmp[] = (int)$entry->shoppergroup_id;
+					$tmp[] = (int) $entry->shoppergroup_id;
 				}
 				$shoppergroups = $tmp;
 			}
@@ -914,7 +914,7 @@
 			$item->start_date = $product->created_on;
 			$item->metarobot  = $product->metarobot;
 			
-			if (!empty($product->images))
+			if (!empty($product->images) && !in_array(strtolower(trim($product->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{
 				$item->imageUrl = $product->images[0]->file_url;
 				$item->imageAlt = $product->images[0]->file_title;
@@ -1085,6 +1085,8 @@
 		 */
 		protected function setCustomfieldsData(&$item, $product) : void
 		{
+			$useTaxonomy = $this->params->get('use_customfields_as_taxonomy', true);
+			
 			foreach ($product->customfields as $customfield)
 			{
 				if (!$customfield->published)
@@ -1111,15 +1113,27 @@
 						$value = vmText::_($customfield->customfield_value);
 						$item->setElement($title, $value);
 						$item->addInstruction(Indexer::META_CONTEXT, $value);
+						
+						if ($useTaxonomy)
+						{
+							$item->addTaxonomy($title, $value);
+						}
+						
 						break;
 					case 'B':
 						if (!$customfield->customfield_value)
 						{
+							$item->addTaxonomy($title, 'no');
 							break;
 						}
 						
 						$item->setElement($title, $title);
 						$item->addInstruction(Indexer::META_CONTEXT, $title);
+						
+						if ($useTaxonomy)
+						{
+							$item->addTaxonomy($title, 'yes');
+						}
 						break;
 					case 'D':
 						if (empty($customfield->customfield_value))
@@ -1130,8 +1144,14 @@
 						try
 						{
 							$value = new DateTime($customfield->customfield_value);
-							$item->setElement($title, $value->format('d.m.Y'));
+							$value = $value->format('d.m.Y');
+							$item->setElement($title, $value);
 							$item->addInstruction(Indexer::META_CONTEXT, $title);
+							
+							if ($useTaxonomy)
+							{
+								$item->addTaxonomy($title, $value);
+							}
 						}
 						catch (DateMalformedStringException)
 						{
@@ -1146,7 +1166,7 @@
 							break;
 						}
 						
-						$this->setBreakDesignCustomfieldData($item, $customfield);
+						$this->setBreakDesignCustomfieldData($item, $customfield, $useTaxonomy);
 				}
 			}
 		}
@@ -1158,10 +1178,11 @@
 		 *
 		 * @param $item
 		 * @param $customfield
+		 * @param $useTaxonomy
 		 *
 		 * @since 1.2.0
 		 */
-		protected function setBreakDesignCustomfieldData($item, $customfield) : void
+		protected function setBreakDesignCustomfieldData($item, $customfield, $useTaxonomy) : void
 		{
 			if ($customfield->custom_element !== 'customfieldsforall')
 			{
@@ -1230,6 +1251,11 @@
 					$customValueTranslated = self::getCustomFieldsForAllLanguageHandlerInstance()->__($customValue, self::$defaultLanguage);
 				}
 				
+				if ($useTaxonomy)
+				{
+					$item->addTaxonomy($title, $customValueTranslated);
+				}
+				
 				$values .= $customValueTranslated . ', ';
 			}
 			
@@ -1266,7 +1292,7 @@
 		 */
 		public static function setVirtuemartNoImageUrl()
 		{
-			if(empty(self::$noImageUrl))
+			if (empty(self::$noImageUrl))
 			{
 				$vmMediaHandler = new VmMediaHandler();
 				$vmMediaHandler->setNoImageSet();
@@ -1285,7 +1311,7 @@
 		 */
 		public static function setActiveLanguages() : array
 		{
-			if(empty(self::$activeLanguages))
+			if (empty(self::$activeLanguages))
 			{
 				self::$activeLanguages = (array) VmConfig::get('active_languages', [self::$defaultLanguage]);
 				

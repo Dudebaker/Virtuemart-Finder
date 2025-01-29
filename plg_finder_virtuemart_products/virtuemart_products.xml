@@ -7,7 +7,7 @@
 	<creationDate>2024-07</creationDate>
 	<copyright>(C) Open Source Matters, Inc.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.2.2</version>
+	<version>1.2.3</version>
 	<description>PLG_FINDER_VIRTUEMART_PRODUCTS_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Finder\VirtuemartProducts</namespace>
 	<files>
@@ -62,6 +62,10 @@
 				</field>
 				<field name="spacer_two" type="spacer" hr="true"/>
 				<field name="use_parent_image" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_IMAGE_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="use_customfields_as_taxonomy" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_CUSTOMFIELDS_AS_TAXONOMY_LBL" description="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_CUSTOMFIELDS_AS_TAXONOMY_DESC" class="btn-group btn-group-yesno">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
