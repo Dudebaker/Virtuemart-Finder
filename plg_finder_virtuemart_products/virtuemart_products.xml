@@ -7,7 +7,7 @@
 	<creationDate>2024-07</creationDate>
 	<copyright>(C) Open Source Matters, Inc.</copyright>
 	<license>GNU General Public License version 2 or later</license>
-	<version>1.2.3</version>
+	<version>1.2.4</version>
 	<description>PLG_FINDER_VIRTUEMART_PRODUCTS_XML_DESCRIPTION</description>
 	<namespace path="src">Joomla\Plugin\Finder\VirtuemartProducts</namespace>
 	<files>
@@ -23,6 +23,19 @@
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
+				<field name="basic_index_options" type="note" label="PLG_FINDER_VIRTUEMART_PRODUCTS_BASIC_INDEX_OPTIONS_LBL" class="info"/>
+				<field name="allow_products_without_category_assignment" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_ALLOW_PRODUCTS_WITHOUT_CATEGORY_ASSIGNMENT_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="index_variants" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_INDEX_VARIANTS_LBL" description="" class="btn-group btn-group-yesno">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="add_variants_values_to_parent" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_ADD_VARIANTS_VALUES_TO_PARENT_LBL" description="" class="btn-group btn-group-yesno" showon="index_variants:0">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 				<field  name="shoppergroups"
 						type="subform"
 						label="PLG_FINDER_VIRTUEMART_PRODUCTS_SHOPPERGROUPS_LBL"
@@ -38,38 +51,38 @@
 						</field>
 					</form>
 				</field>
-				<field name="spacer_zero" type="spacer" hr="true"/>
-				<field name="allow_products_without_category_assignment" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_ALLOW_PRODUCTS_WITHOUT_CATEGORY_ASSIGNMENT_LBL" description="" class="btn-group btn-group-yesno">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
-				<field name="use_parent_category" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_CATEGORY_LBL" description="" class="btn-group btn-group-yesno">
-					<option value="1">JYES</option>
-					<option value="0">JNO</option>
-				</field>
+				<field name="spacer_categories" type="spacer" hr="true"/>
+				<field name="category_index_options" type="note" label="PLG_FINDER_VIRTUEMART_PRODUCTS_CATEGORY_INDEX_OPTIONS_LBL" class="info"/>
 				<field name="use_categories" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_CATEGORIES_LBL" description="" class="btn-group btn-group-yesno">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="spacer_one" type="spacer" hr="true"/>
+				<field name="use_parent_category" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_CATEGORY_LBL" description="" class="btn-group btn-group-yesno" showon="use_categories:1[AND]index_variants:1">
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
+				<field name="spacer_manufacturers" type="spacer" hr="true"/>
+				<field name="manufacturer_index_options" type="note" label="PLG_FINDER_VIRTUEMART_PRODUCTS_MANUFACTURER_INDEX_OPTIONS_LBL" class="info"/>
 				<field name="use_manufacturers" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_MANUFACTURERS_LBL" description="" class="btn-group btn-group-yesno">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="use_parent_manufacturer" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_MANUFACTURER_LBL" description="" class="btn-group btn-group-yesno" showon="use_manufacturers:1">
+				<field name="use_parent_manufacturer" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_MANUFACTURER_LBL" description="" class="btn-group btn-group-yesno" showon="use_manufacturers:1[AND]index_variants:1">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="spacer_two" type="spacer" hr="true"/>
-				<field name="use_parent_image" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_IMAGE_LBL" description="" class="btn-group btn-group-yesno">
+				<field name="spacer_images" type="spacer" hr="true" showon="index_variants:1"/>
+				<field name="images_index_options" type="note" label="PLG_FINDER_VIRTUEMART_PRODUCTS_IMAGES_INDEX_OPTIONS_LBL" class="info" showon="index_variants:1"/>
+				<field name="use_parent_image" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_PARENT_IMAGE_LBL" description="" class="btn-group btn-group-yesno" showon="index_variants:1">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
+				<field name="spacer_customfields" type="spacer" hr="true"/>
+				<field name="custom_index_options" type="note" label="PLG_FINDER_VIRTUEMART_PRODUCTS_CUSTOM_INDEX_OPTIONS_LBL" class="info"/>
 				<field name="use_customfields_as_taxonomy" type="radio" default="1" label="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_CUSTOMFIELDS_AS_TAXONOMY_LBL" description="PLG_FINDER_VIRTUEMART_PRODUCTS_USE_CUSTOMFIELDS_AS_TAXONOMY_DESC" class="btn-group btn-group-yesno">
 					<option value="1">JYES</option>
 					<option value="0">JNO</option>
 				</field>
-				<field name="spacer_three" type="spacer" hr="true"/>
 				<field  name="checkbox_text_yes"
 						type="subform"
 						label="PLG_FINDER_VIRTUEMART_PRODUCTS_CHECKBOX_YES_LBL"
