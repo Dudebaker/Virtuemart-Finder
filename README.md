@@ -10,8 +10,6 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 [![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.4/pkg_virtuemart_finder.zip)
 
-<b>After the installation you have to enable all plugins!</b>
-
 <b>Tested with:</b><br> 
 [![](https://img.shields.io/badge/Joomla-v5.2.5-2E5C6B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)<br>
 [![](https://img.shields.io/badge/Virtuemart-v4.2.18-00A1DF?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDEuOSAxNTIuMSIgaGVpZ2h0PSIxMDBweCIgd2lkdGg9IjEwMHB4IiB0cmFuc2Zvcm09InJvdGF0ZSgwKSBzY2FsZSgxLCAxKSI+CjxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+LnN0MCB7IGZpbGw6ICNmZmZmZmY7IH0uc3QxIHsgZmlsbDogI2ZmZmZmZjsgfTwvc3R5bGU+CjxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik04OS45LDYyLjFjMC41LTAuNSwxLjEtMS4xLDEuNy0xLjdjMjctMjYuOSw2My00NS45LDExMC4zLTU2LjJMMjAwLjMsMEM4NywxOSw0OS45LDkxLDM3LjYsMTIxLjIgIGMtMS44LTQuNy0xNy4yLTQ3LjktMjAuMy01Ni4xSDBsMzIuOSw4N2g4YzEuMy0zLjgsMTItMzkuMSwzMC42LTY1LjhjMC43LTEuMSwxLjQtMi4yLDIuMi0zLjRjMC44LTEsMS42LTIuMSwyLjMtMy4xICBjMC4yLTAuMiwxLTEuNCwxLTEuNHMwLjctMSwxLTEuNWMwLjUtMC44LDEtMS40LDEuMy0xLjljMC45LTQuMywxLjktOC42LDIuOC0xMi45Qzg0LjcsNjIuMSw4Ny4zLDYyLjEsODkuOSw2Mi4xeiIvPgo8cG9seWdvbiBjbGFzcz0ic3QxIiBwb2ludHM9IjEyOC45LDY1LjEgMTEwLjUsMTIwLjYgOTEuOSw2NS4xIDkxLjgsNjUuMSA4NC4zLDY1LjEgODEuOSw3Ni45IDY3LjcsMTQ5LjIgODEuNywxNDkuMiA5MS4zLDEwNS4zICAgMTA3LjksMTUxLjIgMTEzLDE1MS4yIDEyOS41LDEwNS4zIDEzOS4xLDE0OS4zIDE1My4xLDE0OS4zIDEzNi42LDY1LjEgIi8+Cjwvc3ZnPg==)](https://virtuemart.net/download)
