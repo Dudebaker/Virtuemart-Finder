@@ -8,7 +8,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 <br>
 
-[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.4/pkg_virtuemart_finder.zip)
+[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.5/pkg_virtuemart_finder.zip)
 
 <b>Tested with:</b><br> 
 [![](https://img.shields.io/badge/Joomla-v5.2.5-2E5C6B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)<br>
