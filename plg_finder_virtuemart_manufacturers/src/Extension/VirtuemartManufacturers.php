@@ -474,6 +474,12 @@
 			
 			$item->metadata = new Registry($item->metadata);
 			
+			// Create a URL as identifier to recognise items again.
+			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
+			
+			// Build the necessary route and path information.
+			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $item->language);
+			
 			if (empty($item->id))
 			{
 				$this->indexer->index($item);
@@ -483,11 +489,6 @@
 			
 			// Get real Virtuemart manufacturer data
 			$manufacturer = $this->getManufacturerData($item->id, $item->language);
-			
-			// Create a URL as identifier to recognise items again.
-			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
-			// Build the necessary route and path information.
-			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $item->language);
 			
 			// Add Virtuemart category data to the item
 			$this->setManufacturerData($item, $manufacturer);
@@ -537,7 +538,7 @@
 			$query = $db->getQuery(true);
 			$query->select([$db->quoteName('m.virtuemart_manufacturer_id AS id'),
 			                $db->quoteName('m.published', 'state'),
-			                '1 AS access'])
+			                $db->quoteName('m.published', 'access')])
 			      ->from($db->quoteName($this->table, 'm'));
 			
 			return $query;
@@ -607,15 +608,9 @@
 			
 			$url = "index.php?option=$extension&view=$view&virtuemart_manufacturer_id=$id";
 			
-			if (!empty($id))
+			if ($language !== null)
 			{
-				$url .= '&';
-				
-				if ($language !== null)
-				{
-					$language = strtolower($language);
-					$url      .= "lang=$language";
-				}
+				$url .= "&lang=" . strtolower($language);
 			}
 			
 			return $url;
@@ -792,7 +787,7 @@
 			$item->metadesc   = $manufacturer->metadesc;
 			$item->state      = $manufacturer->published;
 			$item->published  = $manufacturer->published;
-			$item->access     = 1;
+			$item->access     = $manufacturer->published;
 			$item->start_date = $manufacturer->created_on;
 			$item->metarobot  = $manufacturer->metarobot;
 			

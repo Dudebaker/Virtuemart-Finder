@@ -463,6 +463,12 @@
 			
 			$item->metadata = new Registry($item->metadata);
 			
+			// Create a URL as identifier to recognise items again.
+			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
+			
+			// Build the necessary route and path information.
+			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, 0, $item->language);
+			
 			if (empty($item->id))
 			{
 				$this->indexer->index($item);
@@ -472,9 +478,6 @@
 			
 			// Get real Virtuemart product data
 			$product = $this->getProductData($item->id, $item->language);
-			
-			// Create a URL as identifier to recognise items again.
-			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
 			
 			// Build the necessary route and path information.
 			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $product->canonCatId, $item->language);
@@ -530,7 +533,7 @@
 			$query = $db->getQuery(true);
 			$query->select([$db->quoteName('p.virtuemart_product_id', 'id'),
 			                $db->quoteName('p.published', 'state'),
-			                '1 AS access'])
+			                $db->quoteName('p.published', 'access')])
 			      ->from($db->quoteName($this->table, 'p'));
 			
 			$indexVariants = (bool)$this->params->get('index_variants', true);
@@ -607,15 +610,9 @@
 			
 			$url = "index.php?option=$extension&view=$view&virtuemart_product_id=$id";
 			
-			if (!empty($id))
+			if ($language !== null)
 			{
-				$url .= '&';
-				
-				if ($language !== null)
-				{
-					$language = strtolower($language);
-					$url      .= "lang=$language";
-				}
+				$url .= "&lang=" . strtolower($language);
 			}
 			
 			return $url;
@@ -640,8 +637,6 @@
 				[$id, $language] = explode('_', $id);
 			}
 			
-			$language = strtolower($language);
-			
 			$route = "index.php?option=$extension&view=$view&virtuemart_product_id=$id";
 			
 			if (!empty($categoryId))
@@ -649,7 +644,11 @@
 				$route .= "&virtuemart_category_id=$categoryId";
 			}
 			
-			$route .= "&lang=$language";
+			if ($language !== null && count((array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
+			{
+				$language = strtolower($language);
+				$route    .= "&lang=$language";
+			}
 			
 			return $route;
 		}
@@ -956,9 +955,10 @@
 			$useManufacturer       = (bool)$this->params->get('use_manufacturers', true);
 			$useParentManufacturer = $useManufacturer && $this->params->get('use_parent_manufacturer', false);
 			
+			$product->manufacturers = [];
+			
 			if (!$useManufacturer)
 			{
-				$product->manufacturers = [];
 				return;
 			}
 			
@@ -974,8 +974,6 @@
 			}
 			
 			$modelManufacturer = VmModel::getModel('Manufacturer');
-			
-			$product->manufacturers = [];
 			
 			foreach ($product->virtuemart_manufacturer_id as $manufacturerId)
 			{
@@ -1120,7 +1118,7 @@
 			$item->metadesc   = $product->metadesc;
 			$item->state      = $product->published;
 			$item->published  = $product->published;
-			$item->access     = 1;
+			$item->access     = $product->published;
 			$item->start_date = $product->created_on;
 			$item->metarobot  = $product->metarobot;
 			
@@ -1167,12 +1165,10 @@
 		 */
 		protected function setCategoryData(&$item, $product) : void
 		{
-			if (empty($product->categories))
+			if (!is_array($product->categories))
 			{
-				return;
+				$product->categories = [];
 			}
-			
-			$allowProductsWithoutCategory = (bool)$this->params->get('allow_products_without_category_assignment', false);
 			
 			// Remove unpublished categories.
 			$product->categories = array_filter($product->categories, static function ($category)
@@ -1180,12 +1176,15 @@
 				return $category->published === 1;
 			});
 			
+			$allowProductsWithoutCategory = (bool)$this->params->get('allow_products_without_category_assignment', false);
+			
 			if (empty($product->categories))
 			{
 				if (!$allowProductsWithoutCategory)
 				{
 					$item->state     = 0;
 					$item->published = 0;
+					$item->access    = 0;
 				}
 				
 				return;
@@ -1231,6 +1230,7 @@
 			{
 				$item->state     = 0;
 				$item->published = 0;
+				$item->access    = 0;
 			}
 		}
 		

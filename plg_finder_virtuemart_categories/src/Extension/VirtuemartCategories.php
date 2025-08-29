@@ -150,7 +150,7 @@
 			VmConfig::loadConfig();
 			vmLanguage::loadJLang('com_virtuemart', true);
 			
-			self::$defaultLanguage = (string) VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
+			self::$defaultLanguage = (string)VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
 			self::setActiveLanguages();
 			self::setVirtuemartNoImageUrl();
 			
@@ -174,8 +174,8 @@
 		/**
 		 * Method to remove the link information for items that have been deleted.
 		 *
-		 * @param   string  $context  The context of the action being performed.
-		 * @param   Table   $table    A Table object containing the record to be deleted
+		 * @param string $context The context of the action being performed.
+		 * @param Table  $table   A Table object containing the record to be deleted
 		 *
 		 * @return  void
 		 *
@@ -210,8 +210,7 @@
 			if (str_contains($id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $id)[0];
-			}
-			else
+			} else
 			{
 				$idWithoutLanguage = $id;
 			}
@@ -231,9 +230,9 @@
 		 * It also makes adjustments if the access level of an item or the
 		 * category to which it belongs has changed.
 		 *
-		 * @param   string   $context  The context of the content passed to the plugin.
-		 * @param   Table    $row      A Table object.
-		 * @param   boolean  $isNew    True if the content has just been created.
+		 * @param string  $context The context of the content passed to the plugin.
+		 * @param Table   $row     A Table object.
+		 * @param boolean $isNew   True if the content has just been created.
 		 *
 		 * @return  void
 		 *
@@ -260,8 +259,7 @@
 			if (str_contains($row->id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $row->id)[0];
-			}
-			else
+			} else
 			{
 				$idWithoutLanguage = $row->id;
 			}
@@ -280,9 +278,9 @@
 		 * from outside the edit screen. This is fired when the item is published,
 		 * unpublished, archived, or unarchived from the list view.
 		 *
-		 * @param   string   $context  The context for the content passed to the plugin.
-		 * @param   array    $pks      An array of primary key ids of the content that has changed state.
-		 * @param   integer  $value    The value of the state that the content has been changed to.
+		 * @param string  $context The context for the content passed to the plugin.
+		 * @param array   $pks     An array of primary key ids of the content that has changed state.
+		 * @param integer $value   The value of the state that the content has been changed to.
 		 *
 		 * @return  void
 		 *
@@ -352,8 +350,8 @@
 		/**
 		 * Method to update index data on published state changes
 		 *
-		 * @param   array    $pks    A list of primary key ids of the content that has changed state.
-		 * @param   integer  $value  The value of the state that the content has been changed to.
+		 * @param array   $pks   A list of primary key ids of the content that has changed state.
+		 * @param integer $value The value of the state that the content has been changed to.
 		 *
 		 * @return  void
 		 *
@@ -376,9 +374,9 @@
 		 * table. This is used to synchronize published and access states that
 		 * are changed when not editing an item directly.
 		 *
-		 * @param   string   $id        The ID of the item to change.
-		 * @param   string   $property  The property that is being changed.
-		 * @param   integer  $value     The new value of that property.
+		 * @param string  $id       The ID of the item to change.
+		 * @param string  $property The property that is being changed.
+		 * @param integer $value    The new value of that property.
 		 *
 		 * @return  boolean  True on success.
 		 *
@@ -397,8 +395,7 @@
 			if (str_contains($id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $id)[0];
-			}
-			else
+			} else
 			{
 				$idWithoutLanguage = $id;
 			}
@@ -436,7 +433,7 @@
 			// Update the content items.
 			$query = $db->getQuery(true)
 			            ->update($db->quoteName('#__finder_links'))
-			            ->set($db->quoteName($property) . ' = ' . (int) $value)
+			            ->set($db->quoteName($property) . ' = ' . (int)$value)
 			            ->where($db->quoteName('url') . ' LIKE ' . $url);
 			$db->setQuery($query);
 			$db->execute();
@@ -447,7 +444,7 @@
 		/**
 		 * Method to index an item. The item must be a Result object.
 		 *
-		 * @param   Result  $item  The item to index as a Result object.
+		 * @param Result $item The item to index as a Result object.
 		 *
 		 * @return  void
 		 *
@@ -474,6 +471,12 @@
 			
 			$item->metadata = new Registry($item->metadata);
 			
+			// Create a URL as identifier to recognise items again.
+			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
+			
+			// Build the necessary route and path information.
+			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $item->language);
+			
 			if (empty($item->id))
 			{
 				$this->indexer->index($item);
@@ -483,11 +486,6 @@
 			
 			// Get real Virtuemart category data
 			$category = $this->getCategoryData($item->id, $item->language);
-			
-			// Create a URL as identifier to recognise items again.
-			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
-			// Build the necessary route and path information.
-			$item->route = $this->getRoute($item->id, $this->extension, $this->layout, $item->language);
 			
 			// Add Virtuemart category data to the item
 			$this->setCategoryData($item, $category);
@@ -512,7 +510,7 @@
 		/**
 		 * Method to get the SQL query used to retrieve the list of content items.
 		 *
-		 * @param   mixed  $query  A DatabaseQuery object or null.
+		 * @param mixed $query A DatabaseQuery object or null.
 		 *
 		 * @return  \Joomla\Database\QueryInterface  A database object.
 		 *
@@ -537,7 +535,7 @@
 			$query = $db->getQuery(true);
 			$query->select([$db->quoteName('c.virtuemart_category_id AS id'),
 			                $db->quoteName('c.published', 'state'),
-			                '1 AS access'])
+			                $db->quoteName('c.published', 'access')])
 			      ->from($db->quoteName($this->table, 'c'));
 			
 			return $query;
@@ -546,7 +544,7 @@
 		/**
 		 * Method to get a content item to index.
 		 *
-		 * @param   integer  $id  The id of the content item.
+		 * @param integer $id The id of the content item.
 		 *
 		 * @throws  \Exception on database error.
 		 *
@@ -567,7 +565,7 @@
 			// Get the list query and add the extra WHERE clause.
 			$db    = $this->getDatabase();
 			$query = $this->getListQuery();
-			$query->where('id = ' . (int) $id);
+			$query->where('id = ' . (int)$id);
 			$query->where('language = ' . $db->quote($language));
 			
 			// Get the item to index.
@@ -575,7 +573,7 @@
 			$item = $db->loadAssoc();
 			
 			// Convert the item to a result object.
-			$item = ArrayHelper::toObject((array) $item, Result::class);
+			$item = ArrayHelper::toObject((array)$item, Result::class);
 			
 			// Set the item type.
 			$item->type_id = $this->type_id;
@@ -590,9 +588,9 @@
 		 * Method to get the URL for the item. The URL is how we look up the link
 		 * in the Finder index.
 		 *
-		 * @param   string  $id         The id of the item.
-		 * @param   string  $extension  The extension the category is in.
-		 * @param   string  $view       The view for the URL.
+		 * @param string $id        The id of the item.
+		 * @param string $extension The extension the category is in.
+		 * @param string $view      The view for the URL.
 		 *
 		 * @return  string  The URL of the item.
 		 *
@@ -607,15 +605,9 @@
 			
 			$url = "index.php?option=$extension&view=$view&virtuemart_category_id=$id";
 			
-			if (!empty($id))
+			if ($language !== null)
 			{
-				$url .= '&';
-				
-				if ($language !== null)
-				{
-					$language = strtolower($language);
-					$url      .= "lang=$language";
-				}
+				$url .= "&lang=" . strtolower($language);
 			}
 			
 			return $url;
@@ -625,9 +617,9 @@
 		 * Method to get the URL for the item. The URL is how we look up the link
 		 * in the Finder index.
 		 *
-		 * @param   integer  $id         The id of the item.
-		 * @param   string   $extension  The extension the category is in.
-		 * @param   string   $view       The view for the URL.
+		 * @param integer $id        The id of the item.
+		 * @param string  $extension The extension the category is in.
+		 * @param string  $view      The view for the URL.
 		 *
 		 * @return  string  The URL of the item.
 		 *
@@ -642,7 +634,7 @@
 			
 			$route = "index.php?option=$extension&view=$view&virtuemart_category_id=$id";
 			
-			if ($language !== null && count((array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
+			if ($language !== null && count((array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
 			{
 				$language = strtolower($language);
 				$route    .= "&lang=$language";
@@ -677,7 +669,7 @@
 		/**
 		 * Method to get a Virtuemart category query for a specific language
 		 *
-		 * @param   string  $language
+		 * @param string    $language
 		 * @param           $query
 		 *
 		 * @return \Joomla\Database\DatabaseQuery
@@ -701,7 +693,7 @@
 		 * Method to union language queries and return them as a sub query
 		 * A sub-query has to be used if you use union since there will be a clear-select afterward to count the entries and this clear only applies to the first query, not all union queries
 		 *
-		 * @param   array  $queries
+		 * @param array    $queries
 		 * @param          $query
 		 *
 		 * @return \Joomla\Database\DatabaseQuery
@@ -723,8 +715,7 @@
 				if ($key === 0)
 				{
 					$queryFrom = $languageQuery;
-				}
-				else
+				} else
 				{
 					$queryFrom->union($languageQuery);
 				}
@@ -743,8 +734,8 @@
 		/**
 		 * Gets the data for a virtuemart category directly from virtuemart based on the given language
 		 *
-		 * @param   int     $virtuemartCategoryId
-		 * @param   string  $language
+		 * @param int    $virtuemartCategoryId
+		 * @param string $language
 		 *
 		 * @return false|\JTable|mixed|object|null
 		 *
@@ -792,7 +783,7 @@
 			$item->metadesc   = $category->metadesc;
 			$item->state      = $category->published;
 			$item->published  = $category->published;
-			$item->access     = 1;
+			$item->access     = $category->published;
 			$item->start_date = $category->created_on;
 			$item->metarobot  = $category->metarobot;
 			
@@ -849,7 +840,7 @@
 		{
 			if (empty(self::$activeLanguages))
 			{
-				self::$activeLanguages = (array) VmConfig::get('active_languages', [self::$defaultLanguage]);
+				self::$activeLanguages = (array)VmConfig::get('active_languages', [self::$defaultLanguage]);
 				
 				if (empty(self::$activeLanguages))
 				{
