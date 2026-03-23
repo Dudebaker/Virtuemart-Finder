@@ -18,6 +18,7 @@
 	
 	namespace Joomla\Plugin\Finder\VirtuemartProducts\Extension;
 	
+	use Bits\Plugin\System\Bits\Helper\LogHelper;
 	use Breakdesigns\Plugin\System\Customfieldsforallbase\Model\Customfield;
 	use DateMalformedStringException;
 	use DateTime;
@@ -388,7 +389,6 @@
 			{
 				// Update the item.
 				$this->change($pk, 'state', $value);
-				$this->change($pk, 'published', $value);
 			}
 		}
 		
@@ -410,7 +410,7 @@
 		public function change($id, $property, $value) : bool
 		{
 			// Check for a property we know how to handle.
-			if ($property !== 'state' && $property !== 'published')
+			if ($property !== 'state')
 			{
 				return true;
 			}
@@ -520,6 +520,7 @@
 			
 			if (!$product)
 			{
+				LogHelper::logToDB('test', 'product not found with id: ' . $item->id);
 				$this->indexer->index($item);
 				
 				return;
@@ -1151,7 +1152,7 @@
 		
 		protected function getProductCustomfieldsData(mixed &$product) : void
 		{
-			if (empty($product->customfields))
+			if (!property_exists($product, 'customfields') || empty($product->customfields))
 			{
 				return;
 			}
@@ -1219,7 +1220,7 @@
 			}
 			
 			$existingTitles = [];
-			if ($product->customfields !== null)
+			if (property_exists($product, 'customfields') && $product->customfields !== null)
 			{
 				foreach ($product->customfields as $c)
 				{
@@ -1342,17 +1343,18 @@
 		 */
 		protected function setProductData(&$item, $product) : void
 		{
-			$item->title      = $product->product_name;
-			$item->alias      = $product->slug;
-			$item->summary    = $product->product_s_desc;
-			$item->body       = $product->product_desc;
-			$item->metakey    = $product->metakey;
-			$item->metadesc   = $product->metadesc;
-			$item->state      = $product->published;
-			$item->published  = $product->published;
-			$item->access     = $product->published;
-			$item->start_date = $product->created_on;
-			$item->metarobot  = $product->metarobot;
+			$item->title              = $product->product_name;
+			$item->alias              = $product->slug;
+			$item->summary            = $product->product_s_desc;
+			$item->body               = $product->product_desc;
+			$item->metakey            = $product->metakey;
+			$item->metadesc           = $product->metadesc;
+			$item->state              = $product->published;
+			$item->access             = $product->published;
+			$item->start_date         = $product->created_on;
+			$item->publish_start_date = $product->created_on;
+			$item->publish_end_date   = $item->state ? null : $product->modified_on;
+			$item->metarobot          = $product->metarobot;
 			
 			if (!empty($product->images) && !in_array(strtolower(trim($product->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{
@@ -1418,9 +1420,8 @@
 			{
 				if (!$allowProductsWithoutCategory)
 				{
-					$item->state     = 0;
-					$item->published = 0;
-					$item->access    = 0;
+					$item->state  = 0;
+					$item->access = 0;
 				}
 				
 				return;
@@ -1466,9 +1467,8 @@
 			
 			if (!$allowProductsWithoutCategory && $nonPublishedCategoriesCount === count($product->categories))
 			{
-				$item->state     = 0;
-				$item->published = 0;
-				$item->access    = 0;
+				$item->state  = 0;
+				$item->access = 0;
 			}
 		}
 		
@@ -1538,7 +1538,7 @@
 		{
 			$useTaxonomy = $this->params->get('use_customfields_as_taxonomy', true);
 			
-			if ($product->customfields === null)
+			if (!property_exists($product, 'customfields') || $product->customfields === null)
 			{
 				return;
 			}

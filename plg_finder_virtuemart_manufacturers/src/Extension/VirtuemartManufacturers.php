@@ -374,7 +374,6 @@
 			{
 				// Update the item.
 				$this->change($pk, 'state', $value);
-				$this->change($pk, 'published', $value);
 			}
 		}
 		
@@ -396,7 +395,7 @@
 		public function change($id, $property, $value) : bool
 		{
 			// Check for a property we know how to handle.
-			if ($property !== 'state' && $property !== 'published')
+			if ($property !== 'state')
 			{
 				return true;
 			}
@@ -813,16 +812,17 @@
 		 */
 		protected function setManufacturerData(&$item, $manufacturer) : void
 		{
-			$item->title      = $manufacturer->mf_name;
-			$item->alias      = $manufacturer->slug;
-			$item->summary    = $manufacturer->mf_desc;
-			$item->metakey    = $manufacturer->metakey;
-			$item->metadesc   = $manufacturer->metadesc;
-			$item->state      = $manufacturer->published;
-			$item->published  = $manufacturer->published;
-			$item->access     = $manufacturer->published;
-			$item->start_date = $manufacturer->created_on;
-			$item->metarobot  = $manufacturer->metarobot;
+			$item->title              = $manufacturer->mf_name;
+			$item->alias              = $manufacturer->slug;
+			$item->summary            = $manufacturer->mf_desc;
+			$item->metakey            = $manufacturer->metakey;
+			$item->metadesc           = $manufacturer->metadesc;
+			$item->state              = $manufacturer->published;
+			$item->access             = $manufacturer->published;
+			$item->start_date         = $manufacturer->created_on;
+			$item->publish_start_date = $manufacturer->created_on;
+			$item->publish_end_date   = $item->state ? null : $manufacturer->modified_on;
+			$item->metarobot          = $manufacturer->metarobot;
 			
 			if (!empty($manufacturer->images) && !in_array(strtolower(trim($manufacturer->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{

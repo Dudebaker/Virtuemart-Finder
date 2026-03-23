@@ -374,7 +374,6 @@
 			{
 				// Update the item.
 				$this->change($pk, 'state', $value);
-				$this->change($pk, 'published', $value);
 			}
 		}
 		
@@ -396,7 +395,7 @@
 		public function change($id, $property, $value) : bool
 		{
 			// Check for a property we know how to handle.
-			if ($property !== 'state' && $property !== 'published')
+			if ($property !== 'state')
 			{
 				return true;
 			}
@@ -814,16 +813,17 @@
 		 */
 		protected function setCategoryData(&$item, $category) : void
 		{
-			$item->title      = $category->category_name;
-			$item->alias      = $category->slug;
-			$item->summary    = $category->category_description;
-			$item->metakey    = $category->metakey;
-			$item->metadesc   = $category->metadesc;
-			$item->state      = $category->published;
-			$item->published  = $category->published;
-			$item->access     = $category->published;
-			$item->start_date = $category->created_on;
-			$item->metarobot  = $category->metarobot;
+			$item->title              = $category->category_name;
+			$item->alias              = $category->slug;
+			$item->summary            = $category->category_description;
+			$item->metakey            = $category->metakey;
+			$item->metadesc           = $category->metadesc;
+			$item->state              = $category->published;
+			$item->access             = $category->published;
+			$item->start_date         = $category->created_on;
+			$item->publish_start_date = $category->created_on;
+			$item->publish_end_date   = $item->state ? null : $category->modified_on;
+			$item->metarobot          = $category->metarobot;
 			
 			if (!empty($category->images) && !in_array(strtolower(trim($category->images[0]->file_url)), ['.jpeg', '.jpg', '.png', '.gif', '.bmp']))
 			{
