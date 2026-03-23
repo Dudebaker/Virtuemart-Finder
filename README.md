@@ -8,7 +8,7 @@ Since for some actions the Virtuemart-Core does not have any events (publish/unp
 
 <br>
 
-[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.4/pkg_virtuemart_finder.zip)
+[![Download Virtuemart Finder](https://img.shields.io/github/v/release/Dudebaker/Virtuemart-Finder?logo=github&label=Download%20Virtuemart%20Finder&color=blueviolet&style=for-the-badge)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.3.0/pkg_virtuemart_finder.zip)
 
 <b>Tested with:</b><br> 
 [![](https://img.shields.io/badge/Joomla-v5.2.5-2E5C6B?logo=joomla&logoColor=white&style=for-the-badge)](https://downloads.joomla.org/)<br>
@@ -78,7 +78,7 @@ You can extend what should be indexed by using the Virtuemart Finder Extender pl
 
 You have access to more or less all values of virtuemart product/category/manufacturer which you already use in the templates.
 
-[![Download Virtuemart Finder Extender](https://img.shields.io/badge/Download_Virtuemart_Finder_Extender-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.2.0/plg_system_virtuemart_finder_extender.zip)
+[![Download Virtuemart Finder Extender](https://img.shields.io/badge/Download_Virtuemart_Finder_Extender-v1.0.1-blue?style=for-the-badge&logo=github)](https://github.com/Dudebaker/Virtuemart-Finder/releases/download/v1.3.0/plg_system_virtuemart_finder_extender.zip)
 
 ---
 

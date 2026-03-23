@@ -14,9 +14,12 @@
 	/** @noinspection PhpUnused */
 	/** @noinspection DuplicatedCode */
 	/** @noinspection RedundantSuppression */
+	/** @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection */
 	
 	namespace Joomla\Plugin\Finder\VirtuemartManufacturers\Extension;
 	
+	use Exception;
+	use Joomla\CMS\Application\ConsoleApplication;
 	use Joomla\CMS\Component\ComponentHelper;
 	use Joomla\CMS\Factory;
 	use Joomla\CMS\Table\Table;
@@ -30,6 +33,7 @@
 	use Joomla\Event\DispatcherInterface;
 	use Joomla\Registry\Registry;
 	use Joomla\Utilities\ArrayHelper;
+	use Throwable;
 	use VirtueMartModelManufacturer;
 	use VmConfig;
 	use vmLanguage;
@@ -120,6 +124,8 @@
 		 */
 		protected static string $defaultLanguage = 'en-GB';
 		
+		protected static string $currentLanguage = 'en-GB';
+		
 		/**
 		 * Saves the active virtuemart languages
 		 *
@@ -130,13 +136,15 @@
 		protected static array $activeLanguages;
 		
 		/**
-		 * Image which should be used, if nothing is assigned
+		 * Image, which should be used if nothing is assigned
 		 *
 		 * @var string
 		 *
 		 * @since 1.2
 		 */
 		protected static string $noImageUrl;
+		
+		private static ?Registry $vmParams = null;
 		
 		#endregion
 		
@@ -151,8 +159,7 @@
 			vmLanguage::loadJLang('com_virtuemart', true);
 			
 			self::$defaultLanguage = (string) VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
-			self::setActiveLanguages();
-			self::setVirtuemartNoImageUrl();
+			self::$currentLanguage = self::$defaultLanguage;
 			
 			parent::__construct($dispatcher, $config);
 		}
@@ -200,7 +207,7 @@
 					return;
 			}
 			
-			if (empty(self::$activeLanguages))
+			if (empty(self::getActiveLanguages()))
 			{
 				$this->remove($id);
 				
@@ -216,7 +223,7 @@
 				$idWithoutLanguage = $id;
 			}
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -250,7 +257,7 @@
 				return;
 			}
 			
-			if (empty(self::$activeLanguages))
+			if (empty(self::getActiveLanguages()))
 			{
 				$this->reindex($row->id);
 				
@@ -266,7 +273,7 @@
 				$idWithoutLanguage = $row->id;
 			}
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -286,7 +293,7 @@
 		 *
 		 * @return  void
 		 *
-		 * @throws \Exception
+		 * @throws Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -357,7 +364,7 @@
 		 *
 		 * @return  void
 		 *
-		 * @throws \Exception
+		 * @throws Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -382,7 +389,7 @@
 		 *
 		 * @return  boolean  True on success.
 		 *
-		 * @throws  \Exception on database error.
+		 * @throws  Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -425,7 +432,7 @@
 				return strtolower(substr(strstr($field, '&lang='), strlen('&lang=')));
 			}, $existingItems);
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				if (!in_array(strtolower($activeLanguage), $existingLanguages, true))
 				{
@@ -452,6 +459,7 @@
 		 * @return  void
 		 *
 		 * @throws  \Exception on database error.
+		 * @throws \Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -467,14 +475,21 @@
 			
 			$item->context = 'com_virtuemart.manufacturer';
 			
-			// Initialise the item parameters.
-			$registry     = new Registry($item->params);
-			$item->params = clone ComponentHelper::getParams('com_virtuemart', true);
+			// Initialize the item parameters.
+			$registry = new Registry($item->params);
+			
+			if (self::$vmParams === null)
+			{
+				self::$vmParams = ComponentHelper::getParams('com_virtuemart', true);
+			}
+			
+			$item->params = clone self::$vmParams;
+			
 			$item->params->merge($registry);
 			
 			$item->metadata = new Registry($item->metadata);
 			
-			// Create a URL as identifier to recognise items again.
+			// Create a URL as an identifier to recognize items again.
 			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
 			
 			// Build the necessary route and path information.
@@ -493,18 +508,26 @@
 			// Add Virtuemart category data to the item
 			$this->setManufacturerData($item, $manufacturer);
 			
-			// Add whole virtuemart object to access all other variables from triggered plugins
-			$item->setElement('virtuemart_manufacturer', $manufacturer);
-			
 			// Trigger the onContentPrepare event.
-			$item->summary = Helper::prepareContent($item->summary, $item->params, $item);
-			$item->body    = Helper::prepareContent($item->body, $item->params, $item);
+			if (trim($item->summary) === trim($item->body))
+			{
+				$item->summary = $item->body = $this->prepareContents($item, $item->body);
+			}
+			else
+			{
+				$item->summary = $this->prepareContents($item, $item->summary);
+				$item->body    = $this->prepareContents($item, $item->body);
+			}
 			
 			// Get content extras.
-			Helper::getContentExtras($item);
-			
-			// Remove the virtuemart object, otherwise the serialization fails
-			unset($item->virtuemart_manufacturer);
+			if ($this->hasFinderContentListeners())
+			{
+				// Add a whole virtuemart object to access all other variables from triggered plugins
+				$item->setElement('virtuemart_manufacturer', $manufacturer);
+				Helper::getContentExtras($item);
+				// Remove the virtuemart object, otherwise the serialization fails and memory increase
+				unset($item->virtuemart_manufacturer);
+			}
 			
 			// Index the item.
 			$this->indexer->index($item);
@@ -661,7 +684,7 @@
 		{
 			$queries = [];
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$queries[] = $this->getListQueryForLanguage($activeLanguage);
 			}
@@ -734,6 +757,17 @@
 		#endregion
 		
 		#region Virtuemart Data
+		private static ?VirtueMartModelManufacturer $modelManufacturer = null;
+		
+		protected function getManufacturerModel() : VirtueMartModelManufacturer
+		{
+			if (self::$modelManufacturer === null)
+			{
+				self::$modelManufacturer = VmModel::getModel('Manufacturer');
+			}
+			
+			return self::$modelManufacturer;
+		}
 		
 		/**
 		 * Gets the data for a virtuemart category directly from virtuemart based on the given language
@@ -750,17 +784,16 @@
 		protected function getManufacturerData(int $virtuemartManufacturerId, string $language)
 		{
 			// Changes the currently active backend language to the language which is currently indexed, needed for caches and correct description tables of virtuemart
-			vmLanguage::setLanguageByTag($language);
+			self::setCurrentLanguage($language);
 			
-			/** @var VirtueMartModelManufacturer $modelManufacturer */
-			$modelManufacturer = VmModel::getModel('Manufacturer');
+			$modelManufacturer = $this->getManufacturerModel();
 			$manufacturer      = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
 			
 			if (($manufacturer === null || empty($manufacturer->mf_name)) && $language !== self::$defaultLanguage)
 			{
-				vmLanguage::setLanguageByTag(self::$defaultLanguage);
+				self::setCurrentLanguage(self::$defaultLanguage);
 				$manufacturer = $modelManufacturer->getManufacturer($virtuemartManufacturerId);
-				vmLanguage::setLanguageByTag($language);
+				self::setCurrentLanguage($language);
 			}
 			
 			$modelManufacturer->addImages($manufacturer, 1);
@@ -799,7 +832,7 @@
 			
 			if (empty($item->imageUrl))
 			{
-				$item->imageUrl = self::$noImageUrl;
+				$item->imageUrl = self::getVirtuemartNoImageUrl();
 				$item->imageAlt = $item->title;
 			}
 			
@@ -821,7 +854,7 @@
 		 *
 		 * @since 1.2
 		 */
-		public static function setVirtuemartNoImageUrl()
+		public static function getVirtuemartNoImageUrl()
 		{
 			if (empty(self::$noImageUrl))
 			{
@@ -840,7 +873,7 @@
 		 *
 		 * @since 1.2.1
 		 */
-		public static function setActiveLanguages() : array
+		public static function getActiveLanguages() : array
 		{
 			if (empty(self::$activeLanguages))
 			{
@@ -853,6 +886,79 @@
 			}
 			
 			return self::$activeLanguages;
+		}
+		
+		public static function setCurrentLanguage(string $language) : void
+		{
+			if (self::$currentLanguage !== $language)
+			{
+				vmLanguage::setLanguageByTag($language);
+				self::$currentLanguage = $language;
+			}
+		}
+		
+		private static ?bool $isCli = null;
+		
+		/**
+		 * @throws Exception
+		 */
+		private function isCli() : bool
+		{
+			if (self::$isCli === null)
+			{
+				$app         = Factory::getApplication();
+				self::$isCli = $app instanceof ConsoleApplication;
+			}
+			
+			return self::$isCli;
+		}
+		
+		/**
+		 * @throws Exception|Throwable
+		 */
+		private function prepareContents(&$item, $content) : ?string
+		{
+			if (!str_contains($content, '{'))
+			{
+				return $content;
+			}
+			if (!preg_match('/\{[a-zA-Z]/', $content))
+			{
+				return $content;
+			}
+			
+			try
+			{
+				return Helper::prepareContent($content, $item->params, $item);
+			}
+			catch (Throwable $e)
+			{
+				if (!$this->isCli())
+				{
+					throw $e;
+				}
+				
+				return $content;
+			}
+		}
+		
+		private static ?bool $hasFinderContentListeners = null;
+		
+		/**
+		 * @throws Exception
+		 */
+		private function hasFinderContentListeners() : bool
+		{
+			if (self::$hasFinderContentListeners === null)
+			{
+				$dispatcher = Factory::getApplication()->getDispatcher();
+				
+				self::$hasFinderContentListeners = !empty(
+				$dispatcher->getListeners('onPrepareFinderContent')
+				);
+			}
+			
+			return self::$hasFinderContentListeners;
 		}
 		#endregion
 	}

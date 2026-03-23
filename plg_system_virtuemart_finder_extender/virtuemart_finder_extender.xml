@@ -7,7 +7,7 @@
     <creationDate>2025-01</creationDate>
     <copyright>(C) Open Source Matters, Inc.</copyright>
     <license>GNU General Public License version 2 or later</license>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <namespace path="src">Joomla\Plugin\System\VirtuemartFinderExtender</namespace>
     <files>
         <folder plugin="virtuemart_finder_extender">services</folder>

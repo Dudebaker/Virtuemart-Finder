@@ -14,9 +14,12 @@
 	/** @noinspection PhpUnused */
 	/** @noinspection DuplicatedCode */
 	/** @noinspection RedundantSuppression */
+	/** @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection */
 	
 	namespace Joomla\Plugin\Finder\VirtuemartCategories\Extension;
 	
+	use Exception;
+	use Joomla\CMS\Application\ConsoleApplication;
 	use Joomla\CMS\Component\ComponentHelper;
 	use Joomla\CMS\Factory;
 	use Joomla\CMS\Table\Table;
@@ -30,6 +33,7 @@
 	use Joomla\Event\DispatcherInterface;
 	use Joomla\Registry\Registry;
 	use Joomla\Utilities\ArrayHelper;
+	use Throwable;
 	use VirtueMartModelCategory;
 	use VmConfig;
 	use vmLanguage;
@@ -120,6 +124,8 @@
 		 */
 		protected static string $defaultLanguage = 'en-GB';
 		
+		protected static string $currentLanguage = 'en-GB';
+		
 		/**
 		 * Saves the active virtuemart languages
 		 *
@@ -130,13 +136,15 @@
 		protected static array $activeLanguages;
 		
 		/**
-		 * Image which should be used, if nothing is assigned
+		 * Image, which should be used if nothing is assigned
 		 *
 		 * @var string
 		 *
 		 * @since 1.2
 		 */
 		protected static string $noImageUrl;
+		
+		private static ?Registry $vmParams = null;
 		
 		#endregion
 		
@@ -150,9 +158,8 @@
 			VmConfig::loadConfig();
 			vmLanguage::loadJLang('com_virtuemart', true);
 			
-			self::$defaultLanguage = (string)VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
-			self::setActiveLanguages();
-			self::setVirtuemartNoImageUrl();
+			self::$defaultLanguage = (string) VmConfig::get('vmDefLang', VmConfig::$jDefLangTag);
+			self::$currentLanguage = self::$defaultLanguage;
 			
 			parent::__construct($dispatcher, $config);
 		}
@@ -174,8 +181,8 @@
 		/**
 		 * Method to remove the link information for items that have been deleted.
 		 *
-		 * @param string $context The context of the action being performed.
-		 * @param Table  $table   A Table object containing the record to be deleted
+		 * @param   string  $context  The context of the action being performed.
+		 * @param   Table   $table    A Table object containing the record to be deleted
 		 *
 		 * @return  void
 		 *
@@ -200,7 +207,7 @@
 					return;
 			}
 			
-			if (empty(self::$activeLanguages))
+			if (empty(self::getActiveLanguages()))
 			{
 				$this->remove($id);
 				
@@ -210,12 +217,13 @@
 			if (str_contains($id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $id)[0];
-			} else
+			}
+			else
 			{
 				$idWithoutLanguage = $id;
 			}
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -230,9 +238,9 @@
 		 * It also makes adjustments if the access level of an item or the
 		 * category to which it belongs has changed.
 		 *
-		 * @param string  $context The context of the content passed to the plugin.
-		 * @param Table   $row     A Table object.
-		 * @param boolean $isNew   True if the content has just been created.
+		 * @param   string   $context  The context of the content passed to the plugin.
+		 * @param   Table    $row      A Table object.
+		 * @param   boolean  $isNew    True if the content has just been created.
 		 *
 		 * @return  void
 		 *
@@ -249,7 +257,7 @@
 				return;
 			}
 			
-			if (empty(self::$activeLanguages))
+			if (empty(self::getActiveLanguages()))
 			{
 				$this->reindex($row->id);
 				
@@ -259,12 +267,13 @@
 			if (str_contains($row->id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $row->id)[0];
-			} else
+			}
+			else
 			{
 				$idWithoutLanguage = $row->id;
 			}
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$idWithLanguage = $idWithoutLanguage . '_' . $activeLanguage;
 				
@@ -278,13 +287,13 @@
 		 * from outside the edit screen. This is fired when the item is published,
 		 * unpublished, archived, or unarchived from the list view.
 		 *
-		 * @param string  $context The context for the content passed to the plugin.
-		 * @param array   $pks     An array of primary key ids of the content that has changed state.
-		 * @param integer $value   The value of the state that the content has been changed to.
+		 * @param   string   $context  The context for the content passed to the plugin.
+		 * @param   array    $pks      An array of primary key ids of the content that has changed state.
+		 * @param   integer  $value    The value of the state that the content has been changed to.
 		 *
 		 * @return  void
 		 *
-		 * @throws \Exception
+		 * @throws Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -350,12 +359,12 @@
 		/**
 		 * Method to update index data on published state changes
 		 *
-		 * @param array   $pks   A list of primary key ids of the content that has changed state.
-		 * @param integer $value The value of the state that the content has been changed to.
+		 * @param   array    $pks    A list of primary key ids of the content that has changed state.
+		 * @param   integer  $value  The value of the state that the content has been changed to.
 		 *
 		 * @return  void
 		 *
-		 * @throws \Exception
+		 * @throws Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -374,13 +383,13 @@
 		 * table. This is used to synchronize published and access states that
 		 * are changed when not editing an item directly.
 		 *
-		 * @param string  $id       The ID of the item to change.
-		 * @param string  $property The property that is being changed.
-		 * @param integer $value    The new value of that property.
+		 * @param   string   $id        The ID of the item to change.
+		 * @param   string   $property  The property that is being changed.
+		 * @param   integer  $value     The new value of that property.
 		 *
 		 * @return  boolean  True on success.
 		 *
-		 * @throws  \Exception on database error.
+		 * @throws  Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -395,7 +404,8 @@
 			if (str_contains($id, '_'))
 			{
 				$idWithoutLanguage = explode('_', $id)[0];
-			} else
+			}
+			else
 			{
 				$idWithoutLanguage = $id;
 			}
@@ -422,7 +432,7 @@
 				return strtolower(substr(strstr($field, '&lang='), strlen('&lang=')));
 			}, $existingItems);
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				if (!in_array(strtolower($activeLanguage), $existingLanguages, true))
 				{
@@ -433,7 +443,7 @@
 			// Update the content items.
 			$query = $db->getQuery(true)
 			            ->update($db->quoteName('#__finder_links'))
-			            ->set($db->quoteName($property) . ' = ' . (int)$value)
+			            ->set($db->quoteName($property) . ' = ' . (int) $value)
 			            ->where($db->quoteName('url') . ' LIKE ' . $url);
 			$db->setQuery($query);
 			$db->execute();
@@ -444,11 +454,12 @@
 		/**
 		 * Method to index an item. The item must be a Result object.
 		 *
-		 * @param Result $item The item to index as a Result object.
+		 * @param   Result  $item  The item to index as a Result object.
 		 *
 		 * @return  void
 		 *
 		 * @throws  \Exception on database error.
+		 * @throws \Throwable
 		 *
 		 * @since   2.5
 		 */
@@ -464,14 +475,21 @@
 			
 			$item->context = 'com_virtuemart.category';
 			
-			// Initialise the item parameters.
-			$registry     = new Registry($item->params);
-			$item->params = clone ComponentHelper::getParams('com_virtuemart', true);
+			// Initialize the item parameters.
+			$registry = new Registry($item->params);
+			
+			if (self::$vmParams === null)
+			{
+				self::$vmParams = ComponentHelper::getParams('com_virtuemart', true);
+			}
+			
+			$item->params = clone self::$vmParams;
+			
 			$item->params->merge($registry);
 			
 			$item->metadata = new Registry($item->metadata);
 			
-			// Create a URL as identifier to recognise items again.
+			// Create a URL as an identifier to recognize items again.
 			$item->url = $this->getUrl($item->id, $this->extension, $this->layout, $item->language);
 			
 			// Build the necessary route and path information.
@@ -490,18 +508,26 @@
 			// Add Virtuemart category data to the item
 			$this->setCategoryData($item, $category);
 			
-			// Add whole virtuemart object to access all other variables from triggered plugins
-			$item->setElement('virtuemart_category', $category);
-			
 			// Trigger the onContentPrepare event.
-			$item->summary = Helper::prepareContent($item->summary, $item->params, $item);
-			$item->body    = Helper::prepareContent($item->body, $item->params, $item);
+			if (trim($item->summary) === trim($item->body))
+			{
+				$item->summary = $item->body = $this->prepareContents($item, $item->body);
+			}
+			else
+			{
+				$item->summary = $this->prepareContents($item, $item->summary);
+				$item->body    = $this->prepareContents($item, $item->body);
+			}
 			
 			// Get content extras.
-			Helper::getContentExtras($item);
-			
-			// Remove the virtuemart object, otherwise the serialization fails
-			unset($item->virtuemart_category);
+			if ($this->hasFinderContentListeners())
+			{
+				// Add a whole virtuemart object to access all other variables from triggered plugins
+				$item->setElement('virtuemart_category', $category);
+				Helper::getContentExtras($item);
+				// Remove the virtuemart object, otherwise the serialization fails and memory increase
+				unset($item->virtuemart_category);
+			}
 			
 			// Index the item.
 			$this->indexer->index($item);
@@ -510,7 +536,7 @@
 		/**
 		 * Method to get the SQL query used to retrieve the list of content items.
 		 *
-		 * @param mixed $query A DatabaseQuery object or null.
+		 * @param   mixed  $query  A DatabaseQuery object or null.
 		 *
 		 * @return  \Joomla\Database\QueryInterface  A database object.
 		 *
@@ -544,7 +570,7 @@
 		/**
 		 * Method to get a content item to index.
 		 *
-		 * @param integer $id The id of the content item.
+		 * @param   integer  $id  The id of the content item.
 		 *
 		 * @throws  \Exception on database error.
 		 *
@@ -565,7 +591,7 @@
 			// Get the list query and add the extra WHERE clause.
 			$db    = $this->getDatabase();
 			$query = $this->getListQuery();
-			$query->where('id = ' . (int)$id);
+			$query->where('id = ' . (int) $id);
 			$query->where('language = ' . $db->quote($language));
 			
 			// Get the item to index.
@@ -573,7 +599,7 @@
 			$item = $db->loadAssoc();
 			
 			// Convert the item to a result object.
-			$item = ArrayHelper::toObject((array)$item, Result::class);
+			$item = ArrayHelper::toObject((array) $item, Result::class);
 			
 			// Set the item type.
 			$item->type_id = $this->type_id;
@@ -588,9 +614,9 @@
 		 * Method to get the URL for the item. The URL is how we look up the link
 		 * in the Finder index.
 		 *
-		 * @param string $id        The id of the item.
-		 * @param string $extension The extension the category is in.
-		 * @param string $view      The view for the URL.
+		 * @param   string  $id         The id of the item.
+		 * @param   string  $extension  The extension the category is in.
+		 * @param   string  $view       The view for the URL.
 		 *
 		 * @return  string  The URL of the item.
 		 *
@@ -617,9 +643,9 @@
 		 * Method to get the URL for the item. The URL is how we look up the link
 		 * in the Finder index.
 		 *
-		 * @param integer $id        The id of the item.
-		 * @param string  $extension The extension the category is in.
-		 * @param string  $view      The view for the URL.
+		 * @param   integer  $id         The id of the item.
+		 * @param   string   $extension  The extension the category is in.
+		 * @param   string   $view       The view for the URL.
 		 *
 		 * @return  string  The URL of the item.
 		 *
@@ -634,7 +660,7 @@
 			
 			$route = "index.php?option=$extension&view=$view&virtuemart_category_id=$id";
 			
-			if ($language !== null && count((array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
+			if ($language !== null && count((array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag])) > 1)
 			{
 				$language = strtolower($language);
 				$route    .= "&lang=$language";
@@ -658,7 +684,7 @@
 		{
 			$queries = [];
 			
-			foreach (self::$activeLanguages as $activeLanguage)
+			foreach (self::getActiveLanguages() as $activeLanguage)
 			{
 				$queries[] = $this->getListQueryForLanguage($activeLanguage);
 			}
@@ -669,7 +695,7 @@
 		/**
 		 * Method to get a Virtuemart category query for a specific language
 		 *
-		 * @param string    $language
+		 * @param   string  $language
 		 * @param           $query
 		 *
 		 * @return \Joomla\Database\DatabaseQuery
@@ -693,7 +719,7 @@
 		 * Method to union language queries and return them as a sub query
 		 * A sub-query has to be used if you use union since there will be a clear-select afterward to count the entries and this clear only applies to the first query, not all union queries
 		 *
-		 * @param array    $queries
+		 * @param   array  $queries
 		 * @param          $query
 		 *
 		 * @return \Joomla\Database\DatabaseQuery
@@ -715,7 +741,8 @@
 				if ($key === 0)
 				{
 					$queryFrom = $languageQuery;
-				} else
+				}
+				else
 				{
 					$queryFrom->union($languageQuery);
 				}
@@ -731,11 +758,23 @@
 		
 		#region Virtuemart Data
 		
+		private static ?VirtueMartModelCategory $modelCategory = null;
+		
+		protected function getCategoryModel() : VirtueMartModelCategory
+		{
+			if (self::$modelCategory === null)
+			{
+				self::$modelCategory = VmModel::getModel('Category');
+			}
+			
+			return self::$modelCategory;
+		}
+		
 		/**
 		 * Gets the data for a virtuemart category directly from virtuemart based on the given language
 		 *
-		 * @param int    $virtuemartCategoryId
-		 * @param string $language
+		 * @param   int     $virtuemartCategoryId
+		 * @param   string  $language
 		 *
 		 * @return false|\JTable|mixed|object|null
 		 *
@@ -746,17 +785,16 @@
 		protected function getCategoryData(int $virtuemartCategoryId, string $language)
 		{
 			// Changes the currently active backend language to the language which is currently indexed, needed for caches and correct description tables of virtuemart
-			vmLanguage::setLanguageByTag($language);
+			self::setCurrentLanguage($language);
 			
-			/** @var VirtueMartModelCategory $modelCategory */
-			$modelCategory = VmModel::getModel('Category');
+			$modelCategory = $this->getCategoryModel();
 			$category      = $modelCategory->getCategory($virtuemartCategoryId, false, false);
 			
 			if (empty($category->category_name) && $language !== self::$defaultLanguage)
 			{
-				vmLanguage::setLanguageByTag(self::$defaultLanguage);
-				$category = $modelCategory->getCategory($virtuemartCategoryId, false);
-				vmLanguage::setLanguageByTag($language);
+				self::setCurrentLanguage(self::$defaultLanguage);
+				$category = $modelCategory->getCategory($virtuemartCategoryId, false, false);
+				self::setCurrentLanguage($language);
 			}
 			
 			$modelCategory->addImages($category, 1);
@@ -795,7 +833,7 @@
 			
 			if (empty($item->imageUrl))
 			{
-				$item->imageUrl = $this->noImageUrl;
+				$item->imageUrl = self::getVirtuemartNoImageUrl();
 				$item->imageAlt = $item->title;
 			}
 			
@@ -817,7 +855,7 @@
 		 *
 		 * @since 1.2
 		 */
-		public static function setVirtuemartNoImageUrl()
+		public static function getVirtuemartNoImageUrl()
 		{
 			if (empty(self::$noImageUrl))
 			{
@@ -836,11 +874,11 @@
 		 *
 		 * @since 1.2.1
 		 */
-		public static function setActiveLanguages() : array
+		public static function getActiveLanguages() : array
 		{
 			if (empty(self::$activeLanguages))
 			{
-				self::$activeLanguages = (array)VmConfig::get('active_languages', [self::$defaultLanguage]);
+				self::$activeLanguages = (array) VmConfig::get('active_languages', [self::$defaultLanguage]);
 				
 				if (empty(self::$activeLanguages))
 				{
@@ -849,6 +887,79 @@
 			}
 			
 			return self::$activeLanguages;
+		}
+		
+		public static function setCurrentLanguage(string $language) : void
+		{
+			if (self::$currentLanguage !== $language)
+			{
+				vmLanguage::setLanguageByTag($language);
+				self::$currentLanguage = $language;
+			}
+		}
+		
+		private static ?bool $isCli = null;
+		
+		/**
+		 * @throws Exception
+		 */
+		private function isCli() : bool
+		{
+			if (self::$isCli === null)
+			{
+				$app         = Factory::getApplication();
+				self::$isCli = $app instanceof ConsoleApplication;
+			}
+			
+			return self::$isCli;
+		}
+		
+		/**
+		 * @throws Exception|Throwable
+		 */
+		private function prepareContents(&$item, $content) : ?string
+		{
+			if (!str_contains($content, '{'))
+			{
+				return $content;
+			}
+			if (!preg_match('/\{[a-zA-Z]/', $content))
+			{
+				return $content;
+			}
+			
+			try
+			{
+				return Helper::prepareContent($content, $item->params, $item);
+			}
+			catch (Throwable $e)
+			{
+				if (!$this->isCli())
+				{
+					throw $e;
+				}
+				
+				return $content;
+			}
+		}
+		
+		private static ?bool $hasFinderContentListeners = null;
+		
+		/**
+		 * @throws Exception
+		 */
+		private function hasFinderContentListeners() : bool
+		{
+			if (self::$hasFinderContentListeners === null)
+			{
+				$dispatcher = Factory::getApplication()->getDispatcher();
+				
+				self::$hasFinderContentListeners = !empty(
+				$dispatcher->getListeners('onPrepareFinderContent')
+				);
+			}
+			
+			return self::$hasFinderContentListeners;
 		}
 		#endregion
 	}
