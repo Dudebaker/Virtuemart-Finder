@@ -1012,7 +1012,12 @@
 		 */
 		protected function getProductData(int $virtuemartProductId, string $language, bool $withImages = true)
 		{
-			$product = clone $this->getProduct($virtuemartProductId, $language);
+			$product = $this->getProduct($virtuemartProductId, $language);
+			
+			if (is_object($product))
+			{
+				$product = clone $product;
+			}
 			
 			if ($withImages)
 			{

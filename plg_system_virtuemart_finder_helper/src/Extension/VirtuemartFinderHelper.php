@@ -12,11 +12,11 @@
 	
 	namespace Joomla\Plugin\System\VirtuemartFinderHelper\Extension;
 	
+	use Joomla\CMS\Event\Finder as FinderEvent;
 	use Joomla\CMS\Language\Text;
 	use Joomla\CMS\Plugin\CMSPlugin;
 	use Joomla\CMS\Plugin\PluginHelper;
 	use Joomla\Event\SubscriberInterface;
-	use Joomla\CMS\Event\Finder as FinderEvent;
 	use stdClass;
 	use VmConfig;
 	
@@ -27,6 +27,7 @@
 		private array $activeLanguages = [];
 		
 		#region Joomla Events
+		
 		/**
 		 * {@inheritdoc}
 		 * @since version
@@ -34,8 +35,19 @@
 		public static function getSubscribedEvents() : array
 		{
 			return [
+				'onBuildIndex'               => 'onBuildIndex',
 				'application.before_respond' => 'onApplicationBeforeRespond'
 			];
+		}
+		
+		public function onBuildIndex() : void
+		{
+			ini_set('max_execution_time', 0);
+			ini_set('memory_limit', '-1');
+			
+			if (function_exists('set_time_limit')) {
+				set_time_limit(0);
+			}
 		}
 		
 		/**
@@ -65,7 +77,7 @@
 				return;
 			}
 			
-			$this->activeLanguages = (array)VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
+			$this->activeLanguages = (array) VmConfig::get('active_languages', [VmConfig::$jDefLangTag]);
 			
 			if (empty($this->activeLanguages))
 			{
@@ -126,7 +138,7 @@
 				return false;
 			}
 			
-			if(!is_array($ids))
+			if (!is_array($ids))
 			{
 				$ids = [$ids];
 			}
@@ -135,7 +147,7 @@
 			$messageQueue = $app->getMessageQueue();
 			$resultString = $task === 'publish' ? 'COM_VIRTUEMART_STRING_PUBLISHED_SUCCESS' : 'COM_VIRTUEMART_STRING_UNPUBLISHED_SUCCESS';
 			$resultText   = Text::sprintf($resultString, Text::_('COM_VIRTUEMART_' . strtoupper($view)));
-
+			
 			foreach ($messageQueue as $message)
 			{
 				if ($message['message'] === $resultText)
@@ -144,7 +156,8 @@
 					
 					foreach ($this->activeLanguages as $activeLanguage)
 					{
-						$ids_language = array_map(static function($field) use ($activeLanguage) {
+						$ids_language = array_map(static function ($field) use ($activeLanguage)
+						{
 							return $field . '_' . $activeLanguage;
 						}, $ids);
 						
