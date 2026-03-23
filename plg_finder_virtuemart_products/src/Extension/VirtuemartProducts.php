@@ -18,7 +18,6 @@
 	
 	namespace Joomla\Plugin\Finder\VirtuemartProducts\Extension;
 	
-	use Bits\Plugin\System\Bits\Helper\LogHelper;
 	use Breakdesigns\Plugin\System\Customfieldsforallbase\Model\Customfield;
 	use DateMalformedStringException;
 	use DateTime;
@@ -520,7 +519,6 @@
 			
 			if (!$product)
 			{
-				LogHelper::logToDB('test', 'product not found with id: ' . $item->id);
 				$this->indexer->index($item);
 				
 				return;
