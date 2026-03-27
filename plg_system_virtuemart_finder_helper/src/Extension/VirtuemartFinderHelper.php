@@ -42,11 +42,31 @@
 		
 		public function onBuildIndex() : void
 		{
-			ini_set('max_execution_time', 0);
-			ini_set('memory_limit', '-1');
+			if (!class_exists('VmConfig'))
+			{
+				require(JPATH_ADMINISTRATOR . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR . 'com_virtuemart' . DIRECTORY_SEPARATOR . 'helpers' . DIRECTORY_SEPARATOR . 'config.php');
+				VmConfig::loadConfig();
+			}
+			
+			ini_set('max_execution_time', 36000);
+			ini_set('memory_limit', '32G');
+			
+			VmConfig::set('minTime', 36001); // 10 hours for execution time
+			VmConfig::set('givenMaxTime', 36001);
+			VmConfig::set('minMemory', 32768); // 32g for vm min mem
+			
+			if (method_exists('VmConfig', 'ensureExecutionTime'))
+			{
+				VmConfig::ensureExecutionTime(36000);
+			}
+			
+			if (method_exists('VmConfig', 'ensureMemoryLimit'))
+			{
+				VmConfig::ensureMemoryLimit(32768);
+			}
 			
 			if (function_exists('set_time_limit')) {
-				set_time_limit(0);
+				set_time_limit(36000);
 			}
 		}
 		
